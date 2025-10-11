@@ -8,9 +8,6 @@
     "start": "npm run build && node dist/index.js && set NODE_ENV=dev",
     "dev": "ts-node-dev src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "echo \"Linting TypeScript files...\" && npx tsc --noEmit",
-    "lint:fix": "echo \"Fixing TypeScript issues...\" && npx tsc --noEmit",
-    "type-check": "npx tsc --noEmit",
     "postinstall": "prisma generate",
     "seed": "ts-node prisma/seed.ts",
     "seed:users": "ts-node prisma/user-seed.ts",
@@ -20,17 +17,17 @@
     "db:generate": "npx prisma generate",
     "db:studio": "npx prisma studio"
   },
-  "keywords": ["e-commerce", "api", "nodejs", "express", "typescript", "prisma", "postgresql"],
+  "keywords": [
+    "e-commerce",
+    "api",
+    "nodejs",
+    "express",
+    "typescript",
+    "prisma",
+    "postgresql"
+  ],
   "author": "Kawane Studio",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/your-username/kawane-studio-backend.git"
-  },
-  "bugs": {
-    "url": "https://github.com/your-username/kawane-studio-backend/issues"
-  },
-  "homepage": "https://github.com/your-username/kawane-studio-backend#readme",
   "type": "commonjs",
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

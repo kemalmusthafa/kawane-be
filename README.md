@@ -29,23 +29,27 @@ Backend API untuk aplikasi e-commerce Kawane Studio yang dibangun dengan Node.js
 ## 📦 Installation
 
 1. **Clone repository**
+
    ```bash
    git clone <repository-url>
    cd Backend
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Setup environment variables**
+
    ```bash
    cp env.example .env
    # Edit .env dengan konfigurasi yang sesuai
    ```
 
 4. **Setup database**
+
    ```bash
    npx prisma generate
    npx prisma db push
@@ -102,12 +106,14 @@ Database menggunakan PostgreSQL dengan Prisma ORM. Schema utama:
 ## 🚀 API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - Register user
 - `POST /api/auth/login` - Login user
 - `POST /api/auth/forgot-password` - Forgot password
 - `POST /api/auth/reset-password` - Reset password
 
 ### Products
+
 - `GET /api/products` - Get all products
 - `GET /api/products/:id` - Get product by ID
 - `POST /api/products` - Create product (Admin)
@@ -115,6 +121,7 @@ Database menggunakan PostgreSQL dengan Prisma ORM. Schema utama:
 - `DELETE /api/products/:id` - Delete product (Admin)
 
 ### Deals
+
 - `GET /api/deals` - Get all active deals
 - `GET /api/deals/:id` - Get deal by ID
 - `POST /api/deals` - Create deal (Admin)
@@ -122,11 +129,13 @@ Database menggunakan PostgreSQL dengan Prisma ORM. Schema utama:
 - `DELETE /api/deals/:id` - Delete deal (Admin)
 
 ### Orders
+
 - `GET /api/orders` - Get user orders
 - `POST /api/orders` - Create order
 - `GET /api/orders/:id` - Get order by ID
 
 ### Cart
+
 - `GET /api/cart` - Get user cart
 - `POST /api/cart/add` - Add to cart
 - `PUT /api/cart/:id` - Update cart item
@@ -142,6 +151,7 @@ Sistem deal dengan fitur:
 - **Cleanup** - Pembersihan otomatis deal lama
 
 ### Deal Types
+
 - **PERCENTAGE** - Diskon persentase
 - **FIXED_AMOUNT** - Diskon nominal tetap
 - **FLASH_SALE** - Flash sale dengan harga khusus
@@ -166,11 +176,13 @@ npm run test:coverage
 ## 🚀 Deployment
 
 1. **Build production**
+
    ```bash
    npm run build
    ```
 
 2. **Start production server**
+
    ```bash
    npm start
    ```
