@@ -1,0 +1,71 @@
+import dotenv from "dotenv";
+
+dotenv.config();
+
+// Helper function untuk validate required environment variables
+const requireEnv = (name: string): string => {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`❌ Environment variable ${name} is required but not set!`);
+  }
+  return value;
+};
+
+// Validate environment variables saat startup
+export const appConfig = {
+  // JWT Configuration
+  JWT_SECRET: requireEnv("JWT_SECRET"),
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "120m",
+
+  // Database Configuration
+  DATABASE_URL: requireEnv("DATABASE_URL"),
+  DIRECT_URL: process.env.DIRECT_URL || requireEnv("DATABASE_URL"),
+
+  // Server Configuration
+  NODE_ENV: process.env.NODE_ENV || "development",
+  PORT: parseInt(process.env.PORT || "8000"),
+
+  // CORS Configuration
+  CORS_ORIGIN: process.env.BASE_URL_FE || "http://localhost:3000",
+
+  // Email Configuration
+  MAIL_USER: process.env.MAIL_USER,
+  MAIL_PASS: process.env.MAIL_PASS,
+
+  // Cloudinary Configuration
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+
+  // Google OAuth
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+
+  // Midtrans Configuration
+  MIDTRANS_SERVER_KEY: process.env.MIDTRANS_SERVER_KEY,
+  MIDTRANS_CLIENT_KEY: process.env.MIDTRANS_CLIENT_KEY,
+  MIDTRANS_IS_PRODUCTION: process.env.MIDTRANS_IS_PRODUCTION === "true",
+
+  // Redis Configuration
+  REDIS_URL: process.env.REDIS_URL || "redis://localhost:6379",
+  REDIS_PASSWORD: process.env.REDIS_PASSWORD,
+  REDIS_DB: parseInt(process.env.REDIS_DB || "0"),
+
+  // Rate Limiting Configuration
+  RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000"), // 15 minutes
+  RATE_LIMIT_MAX_REQUESTS: parseInt(
+    process.env.RATE_LIMIT_MAX_REQUESTS || "100"
+  ),
+  RATE_LIMIT_AUTH_MAX: parseInt(process.env.RATE_LIMIT_AUTH_MAX || "10"), // 10 login attempts per window
+};
+
+// Validate critical configs
+if (appConfig.JWT_SECRET.length < 32) {
+  throw new Error(
+    "❌ JWT_SECRET must be at least 32 characters long for security!"
+  );
+}
+
+console.log("✅ Environment configuration loaded successfully");
+console.log(`🌍 Environment: ${appConfig.NODE_ENV}`);
+console.log(`🚀 Server will run on port: ${appConfig.PORT}`);
