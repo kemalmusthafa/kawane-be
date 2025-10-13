@@ -82,6 +82,12 @@ export class PaymentRouter {
       "/webhook-health",
       this.paymentController.webhookHealthCheckController
     );
+
+    // Midtrans configuration endpoint
+    this.router.get(
+      "/midtrans-config",
+      this.paymentController.midtransConfigController
+    );
   }
 
   public getRouter(): Router {

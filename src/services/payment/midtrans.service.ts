@@ -81,17 +81,12 @@ export class MidtransService {
         },
         item_details: data.itemDetails,
         callbacks: {
-          finish: `${appConfig.CORS_ORIGIN}/payment/success`,
-          error: `${appConfig.CORS_ORIGIN}/payment/error`,
-          pending: `${appConfig.CORS_ORIGIN}/payment/pending`,
+          finish: `https://kawane-fe.vercel.app/payment/success`,
+          error: `https://kawane-fe.vercel.app/payment/error`,
+          pending: `https://kawane-fe.vercel.app/payment/pending`,
         },
-        // Only use webhook for production or when using ngrok
-        ...(appConfig.CORS_ORIGIN.includes("ngrok") ||
-        appConfig.MIDTRANS_IS_PRODUCTION
-          ? {
-              notification_url: `${appConfig.CORS_ORIGIN}/api/payments/midtrans-webhook`,
-            }
-          : {}),
+        // Always use webhook for production
+        notification_url: `https://kawane-be.vercel.app/api/payments/midtrans-webhook`,
       };
 
       const response = await snap.createTransaction(parameter);

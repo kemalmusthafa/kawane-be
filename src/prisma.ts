@@ -15,7 +15,7 @@ export const prisma =
     },
     transactionOptions: {
       timeout: 30000, // 30 seconds default timeout
-      isolationLevel: 'ReadCommitted',
+      isolationLevel: "ReadCommitted",
     },
   });
 

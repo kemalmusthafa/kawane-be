@@ -3,6 +3,7 @@ import { createPaymentService } from "../services/payment/create-payment.service
 import { updatePaymentStatusService } from "../services/payment/update-payment-status.service";
 import { getPaymentsService } from "../services/payment/get-payments.service";
 import { handleMidtransWebhook } from "../services/payment/midtrans-webhook.service";
+import { appConfig } from "../utils/config";
 import {
   successResponse,
   errorResponse,
@@ -180,6 +181,29 @@ export class PaymentController {
       successResponse(res, healthStatus, "Webhook health check successful");
     } catch (error: any) {
       errorResponse(res, error.message, 500);
+    }
+  }
+
+  async midtransConfigController(req: Request, res: Response) {
+    try {
+      const config = {
+        isProduction: appConfig.MIDTRANS_IS_PRODUCTION,
+        hasServerKey: !!appConfig.MIDTRANS_SERVER_KEY,
+        hasClientKey: !!appConfig.MIDTRANS_CLIENT_KEY,
+        serverKeyPrefix: appConfig.MIDTRANS_SERVER_KEY?.substring(0, 10) + "...",
+        clientKeyPrefix: appConfig.MIDTRANS_CLIENT_KEY?.substring(0, 10) + "...",
+        corsOrigin: appConfig.CORS_ORIGIN,
+        webhookUrl: "https://kawane-be.vercel.app/api/payments/midtrans-webhook",
+        redirectUrls: {
+          success: "https://kawane-fe.vercel.app/payment/success",
+          error: "https://kawane-fe.vercel.app/payment/error",
+          pending: "https://kawane-fe.vercel.app/payment/pending",
+        },
+      };
+
+      return successResponse(res, config, "Midtrans configuration");
+    } catch (error: any) {
+      return errorResponse(res, error.message, 500);
     }
   }
 }

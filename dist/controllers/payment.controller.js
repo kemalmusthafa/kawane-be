@@ -38,6 +38,7 @@ const create_payment_service_1 = require("../services/payment/create-payment.ser
 const update_payment_status_service_1 = require("../services/payment/update-payment-status.service");
 const get_payments_service_1 = require("../services/payment/get-payments.service");
 const midtrans_webhook_service_1 = require("../services/payment/midtrans-webhook.service");
+const config_1 = require("../utils/config");
 const async_handler_middleware_1 = require("../middlewares/async-handler.middleware");
 class PaymentController {
     async getPaymentsController(req, res) {
@@ -184,6 +185,28 @@ class PaymentController {
         }
         catch (error) {
             (0, async_handler_middleware_1.errorResponse)(res, error.message, 500);
+        }
+    }
+    async midtransConfigController(req, res) {
+        try {
+            const config = {
+                isProduction: config_1.appConfig.MIDTRANS_IS_PRODUCTION,
+                hasServerKey: !!config_1.appConfig.MIDTRANS_SERVER_KEY,
+                hasClientKey: !!config_1.appConfig.MIDTRANS_CLIENT_KEY,
+                serverKeyPrefix: config_1.appConfig.MIDTRANS_SERVER_KEY?.substring(0, 10) + "...",
+                clientKeyPrefix: config_1.appConfig.MIDTRANS_CLIENT_KEY?.substring(0, 10) + "...",
+                corsOrigin: config_1.appConfig.CORS_ORIGIN,
+                webhookUrl: "https://kawane-be.vercel.app/api/payments/midtrans-webhook",
+                redirectUrls: {
+                    success: "https://kawane-fe.vercel.app/payment/success",
+                    error: "https://kawane-fe.vercel.app/payment/error",
+                    pending: "https://kawane-fe.vercel.app/payment/pending",
+                },
+            };
+            return (0, async_handler_middleware_1.successResponse)(res, config, "Midtrans configuration");
+        }
+        catch (error) {
+            return (0, async_handler_middleware_1.errorResponse)(res, error.message, 500);
         }
     }
 }

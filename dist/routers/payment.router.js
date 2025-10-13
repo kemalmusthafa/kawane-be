@@ -31,6 +31,8 @@ class PaymentRouter {
         this.router.get("/dev-orders", this.paymentController.devListOrdersController);
         // Webhook health check endpoint
         this.router.get("/webhook-health", this.paymentController.webhookHealthCheckController);
+        // Midtrans configuration endpoint
+        this.router.get("/midtrans-config", this.paymentController.midtransConfigController);
     }
     getRouter() {
         return this.router;

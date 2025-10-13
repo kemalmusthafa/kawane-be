@@ -100,7 +100,7 @@ const expireDealsService = async () => {
             };
         }, {
             timeout: 30000, // 30 seconds timeout
-            isolationLevel: 'ReadCommitted', // Use less strict isolation level
+            isolationLevel: "ReadCommitted", // Use less strict isolation level
         });
         return result;
     }
@@ -160,7 +160,7 @@ const cleanupExpiredDealsService = async () => {
             };
         }, {
             timeout: 60000, // 60 seconds timeout for cleanup
-            isolationLevel: 'ReadCommitted', // Use less strict isolation level
+            isolationLevel: "ReadCommitted", // Use less strict isolation level
         });
         return result;
     }

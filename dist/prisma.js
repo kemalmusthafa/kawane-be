@@ -13,7 +13,7 @@ exports.prisma = globalForPrisma.prisma ??
         },
         transactionOptions: {
             timeout: 30000, // 30 seconds default timeout
-            isolationLevel: 'ReadCommitted',
+            isolationLevel: "ReadCommitted",
         },
     });
 if (process.env.NODE_ENV !== "production")
