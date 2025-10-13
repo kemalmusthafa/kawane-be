@@ -35,7 +35,7 @@ export const cacheMiddleware = (ttlSeconds: number = 3600) => {
       // Override res.json to cache the response
       res.json = function (data: any) {
         // Cache the response data
-        redisService.set(cacheKey, data, ttlSeconds).catch((error) => {
+        redisService.set(cacheKey, data, ttlSeconds).catch((error: any) => {
           console.error("Failed to cache response:", error);
         });
 
@@ -77,7 +77,7 @@ export const cacheWithKey = (
       const originalJson = res.json;
 
       res.json = function (data: any) {
-        redisService.set(cacheKey, data, ttlSeconds).catch((error) => {
+        redisService.set(cacheKey, data, ttlSeconds).catch((error: any) => {
           console.error("Failed to cache response:", error);
         });
 
