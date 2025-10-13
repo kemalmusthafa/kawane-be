@@ -190,10 +190,13 @@ export class PaymentController {
         isProduction: appConfig.MIDTRANS_IS_PRODUCTION,
         hasServerKey: !!appConfig.MIDTRANS_SERVER_KEY,
         hasClientKey: !!appConfig.MIDTRANS_CLIENT_KEY,
-        serverKeyPrefix: appConfig.MIDTRANS_SERVER_KEY?.substring(0, 10) + "...",
-        clientKeyPrefix: appConfig.MIDTRANS_CLIENT_KEY?.substring(0, 10) + "...",
+        serverKeyPrefix:
+          appConfig.MIDTRANS_SERVER_KEY?.substring(0, 10) + "...",
+        clientKeyPrefix:
+          appConfig.MIDTRANS_CLIENT_KEY?.substring(0, 10) + "...",
         corsOrigin: appConfig.CORS_ORIGIN,
-        webhookUrl: "https://kawane-be.vercel.app/api/payments/midtrans-webhook",
+        webhookUrl:
+          "https://kawane-be.vercel.app/api/payments/midtrans-webhook",
         redirectUrls: {
           success: "https://kawane-fe.vercel.app/payment/success",
           error: "https://kawane-fe.vercel.app/payment/error",
