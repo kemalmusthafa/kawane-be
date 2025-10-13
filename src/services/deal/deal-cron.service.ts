@@ -20,7 +20,16 @@ export class DealCronService {
     const expireJob = cron.schedule("*/5 * * * *", async () => {
       try {
         console.log("🕐 Running deal expiration check...");
-        const result = await expireDealsService();
+        
+        // Add timeout to prevent hanging connections
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Deal expiration check timeout')), 30000); // 30 seconds timeout
+        });
+        
+        const result = await Promise.race([
+          expireDealsService(),
+          timeoutPromise
+        ]);
 
         if (result.expiredDealsCount > 0) {
           console.log(`✅ Expired ${result.expiredDealsCount} deals`);
@@ -29,6 +38,7 @@ export class DealCronService {
         }
       } catch (error) {
         console.error("❌ Error in deal expiration cron job:", error);
+        // Don't throw error to prevent cron job from stopping
       }
     });
 
@@ -36,7 +46,16 @@ export class DealCronService {
     const cleanupJob = cron.schedule("0 2 * * *", async () => {
       try {
         console.log("🧹 Running deal cleanup...");
-        const result = await cleanupExpiredDealsService();
+        
+        // Add timeout to prevent hanging connections
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Deal cleanup timeout')), 60000); // 60 seconds timeout
+        });
+        
+        const result = await Promise.race([
+          cleanupExpiredDealsService(),
+          timeoutPromise
+        ]);
 
         if (result.cleanedUpDealsCount > 0) {
           console.log(
@@ -47,6 +66,7 @@ export class DealCronService {
         }
       } catch (error) {
         console.error("❌ Error in deal cleanup cron job:", error);
+        // Don't throw error to prevent cron job from stopping
       }
     });
 
