@@ -33,6 +33,8 @@ class PaymentRouter {
         this.router.get("/webhook-health", this.paymentController.webhookHealthCheckController);
         // Midtrans configuration endpoint
         this.router.get("/midtrans-config", this.paymentController.midtransConfigController);
+        // Create Midtrans token endpoint
+        this.router.post("/midtrans-token", auth_middleware_1.requireAuth, this.paymentController.createMidtransTokenController);
     }
     getRouter() {
         return this.router;

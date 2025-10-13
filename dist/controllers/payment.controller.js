@@ -209,5 +209,50 @@ class PaymentController {
             return (0, async_handler_middleware_1.errorResponse)(res, error.message, 500);
         }
     }
+    async createMidtransTokenController(req, res) {
+        try {
+            const { orderId, amount, customerDetails, paymentMethod } = req.body;
+            if (!orderId || !amount || !customerDetails) {
+                return (0, async_handler_middleware_1.errorResponse)(res, "Missing required fields", 400);
+            }
+            // Import MidtransService
+            const { MidtransService } = await Promise.resolve().then(() => __importStar(require("../services/payment/midtrans.service")));
+            const midtransData = {
+                orderId,
+                amount,
+                customerDetails: {
+                    firstName: customerDetails.name?.split(" ")[0] || customerDetails.name,
+                    lastName: customerDetails.name?.split(" ").slice(1).join(" ") || "",
+                    email: customerDetails.email,
+                    phone: customerDetails.phone || "08123456789",
+                },
+                shippingAddress: {
+                    firstName: customerDetails.name?.split(" ")[0] || customerDetails.name,
+                    lastName: customerDetails.name?.split(" ").slice(1).join(" ") || "",
+                    address: customerDetails.address || "Default Address",
+                    city: customerDetails.city || "Jakarta",
+                    postalCode: customerDetails.postalCode || "12345",
+                    phone: customerDetails.phone || "08123456789",
+                },
+                itemDetails: [
+                    {
+                        id: orderId,
+                        price: amount,
+                        quantity: 1,
+                        name: `Order ${orderId}`,
+                    },
+                ],
+            };
+            const result = await MidtransService.createPayment(midtransData);
+            return (0, async_handler_middleware_1.successResponse)(res, {
+                token: result.token,
+                redirectUrl: result.redirectUrl,
+            }, "Midtrans token created successfully");
+        }
+        catch (error) {
+            console.error("Create Midtrans token error:", error);
+            return (0, async_handler_middleware_1.errorResponse)(res, error.message, 500);
+        }
+    }
 }
 exports.PaymentController = PaymentController;

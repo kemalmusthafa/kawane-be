@@ -88,6 +88,13 @@ export class PaymentRouter {
       "/midtrans-config",
       this.paymentController.midtransConfigController
     );
+
+    // Create Midtrans token endpoint
+    this.router.post(
+      "/midtrans-token",
+      requireAuth,
+      this.paymentController.createMidtransTokenController
+    );
   }
 
   public getRouter(): Router {

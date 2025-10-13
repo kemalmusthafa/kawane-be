@@ -209,4 +209,54 @@ export class PaymentController {
       return errorResponse(res, error.message, 500);
     }
   }
+
+  async createMidtransTokenController(req: AuthRequest, res: Response) {
+    try {
+      const { orderId, amount, customerDetails, paymentMethod } = req.body;
+
+      if (!orderId || !amount || !customerDetails) {
+        return errorResponse(res, "Missing required fields", 400);
+      }
+
+      // Import MidtransService
+      const { MidtransService } = await import("../services/payment/midtrans.service");
+
+      const midtransData = {
+        orderId,
+        amount,
+        customerDetails: {
+          firstName: customerDetails.name?.split(" ")[0] || customerDetails.name,
+          lastName: customerDetails.name?.split(" ").slice(1).join(" ") || "",
+          email: customerDetails.email,
+          phone: customerDetails.phone || "08123456789",
+        },
+        shippingAddress: {
+          firstName: customerDetails.name?.split(" ")[0] || customerDetails.name,
+          lastName: customerDetails.name?.split(" ").slice(1).join(" ") || "",
+          address: customerDetails.address || "Default Address",
+          city: customerDetails.city || "Jakarta",
+          postalCode: customerDetails.postalCode || "12345",
+          phone: customerDetails.phone || "08123456789",
+        },
+        itemDetails: [
+          {
+            id: orderId,
+            price: amount,
+            quantity: 1,
+            name: `Order ${orderId}`,
+          },
+        ],
+      };
+
+      const result = await MidtransService.createPayment(midtransData);
+
+      return successResponse(res, {
+        token: result.token,
+        redirectUrl: result.redirectUrl,
+      }, "Midtrans token created successfully");
+    } catch (error: any) {
+      console.error("Create Midtrans token error:", error);
+      return errorResponse(res, error.message, 500);
+    }
+  }
 }
