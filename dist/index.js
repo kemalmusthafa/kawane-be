@@ -80,7 +80,21 @@ const lookbook_router_1 = __importDefault(require("./routers/lookbook.router"));
 const deal_cron_service_1 = require("./services/deal/deal-cron.service");
 const error_handler_middleware_1 = require("./middlewares/error-handler.middleware");
 const rate_limit_middleware_1 = require("./middlewares/rate-limit.middleware");
-const redis_service_1 = __importDefault(require("./services/cache/redis.service"));
+// Import redis service with fallback
+let redisService;
+try {
+    redisService = require("./services/cache/redis.service").default;
+}
+catch (error) {
+    // Fallback redis service if module not found
+    redisService = {
+        connect: async () => { },
+        set: async () => { },
+        get: async () => null,
+        del: async () => { },
+        clearAll: async () => { },
+    };
+}
 dotenv_1.default.config();
 const PORT = process.env.PORT || 8000;
 const app = (0, express_1.default)();
@@ -252,11 +266,11 @@ app.use(error_handler_middleware_1.errorHandler);
 // Initialize Redis connection
 async function initializeRedis() {
     try {
-        await redis_service_1.default.connect();
+        await redisService.connect();
         // Redis connected successfully (silent)
         // Test Redis connection
-        await redis_service_1.default.set("test", "Redis is working!", 60);
-        const testValue = await redis_service_1.default.get("test");
+        await redisService.set("test", "Redis is working!", 60);
+        const testValue = await redisService.get("test");
         // Redis test completed (silent)
     }
     catch (error) {

@@ -52,7 +52,20 @@ import {
   generalRateLimit,
   rateLimitInfo,
 } from "./middlewares/rate-limit.middleware";
-import redisService from "./services/cache/redis.service";
+// Import redis service with fallback
+let redisService: any;
+try {
+  redisService = require("./services/cache/redis.service").default;
+} catch (error) {
+  // Fallback redis service if module not found
+  redisService = {
+    connect: async () => {},
+    set: async () => {},
+    get: async () => null,
+    del: async () => {},
+    clearAll: async () => {},
+  };
+}
 
 dotenv.config();
 
