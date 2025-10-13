@@ -155,8 +155,137 @@ export class AdminToolsRouter {
             error: error instanceof Error ? error.message : "Unknown error",
           });
         }
+        }
+      );
+
+    // Seed users for production
+    this.router.post("/seed-users", async (req: Request, res: Response) => {
+      try {
+        const { hash } = await import("bcrypt");
+        
+        // Create Admin User
+        const adminPassword = await hash("Admin123!", 10);
+        const admin = await prisma.user.upsert({
+          where: { email: "admin@kawane.com" },
+          update: {},
+          create: {
+            name: "Admin Kawane",
+            email: "admin@kawane.com",
+            password: adminPassword,
+            role: "ADMIN",
+            isVerified: true,
+            isDeleted: false,
+          },
+        });
+
+        // Create Staff User
+        const staffPassword = await hash("Staff123!", 10);
+        const staff = await prisma.user.upsert({
+          where: { email: "staff@kawane.com" },
+          update: {},
+          create: {
+            name: "Staff Kawane",
+            email: "staff@kawane.com",
+            password: staffPassword,
+            role: "STAFF",
+            isVerified: true,
+            isDeleted: false,
+          },
+        });
+
+        // Create Test Customers
+        const customerPassword = await hash("Customer123!", 10);
+
+        const customer1 = await prisma.user.upsert({
+          where: { email: "customer@kawane.com" },
+          update: {},
+          create: {
+            name: "Test Customer",
+            email: "customer@kawane.com",
+            password: customerPassword,
+            role: "CUSTOMER",
+            isVerified: true,
+            isDeleted: false,
+          },
+        });
+
+        const customer2 = await prisma.user.upsert({
+          where: { email: "john@example.com" },
+          update: {},
+          create: {
+            name: "John Doe",
+            email: "john@example.com",
+            password: customerPassword,
+            role: "CUSTOMER",
+            isVerified: true,
+            isDeleted: false,
+          },
+        });
+
+        const customer3 = await prisma.user.upsert({
+          where: { email: "jane@example.com" },
+          update: {},
+          create: {
+            name: "Jane Smith",
+            email: "jane@example.com",
+            password: customerPassword,
+            role: "CUSTOMER",
+            isVerified: true,
+            isDeleted: false,
+          },
+        });
+
+        const customer4 = await prisma.user.upsert({
+          where: { email: "budi@example.com" },
+          update: {},
+          create: {
+            name: "Budi Santoso",
+            email: "budi@example.com",
+            password: customerPassword,
+            role: "CUSTOMER",
+            isVerified: true,
+            isDeleted: false,
+          },
+        });
+
+        const customer5 = await prisma.user.upsert({
+          where: { email: "sari@example.com" },
+          update: {},
+          create: {
+            name: "Sari Indah",
+            email: "sari@example.com",
+            password: customerPassword,
+            role: "CUSTOMER",
+            isVerified: true,
+            isDeleted: false,
+          },
+        });
+
+        res.json({
+          success: true,
+          message: "Users seeded successfully",
+          data: {
+            totalUsers: 7,
+            users: [
+              { email: "admin@kawane.com", role: "ADMIN" },
+              { email: "staff@kawane.com", role: "STAFF" },
+              { email: "customer@kawane.com", role: "CUSTOMER" },
+              { email: "john@example.com", role: "CUSTOMER" },
+              { email: "jane@example.com", role: "CUSTOMER" },
+              { email: "budi@example.com", role: "CUSTOMER" },
+              { email: "sari@example.com", role: "CUSTOMER" },
+            ],
+          },
+        });
+      } catch (error) {
+        console.error("Error seeding users:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to seed users",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
       }
-    );
+    });
   }
 
   getRouter(): Router {

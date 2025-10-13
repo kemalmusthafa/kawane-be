@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -123,6 +156,126 @@ class AdminToolsRouter {
                 res.status(500).json({
                     success: false,
                     message: "Failed to fix orders",
+                    error: error instanceof Error ? error.message : "Unknown error",
+                });
+            }
+        });
+        // Seed users for production
+        this.router.post("/seed-users", async (req, res) => {
+            try {
+                const { hash } = await Promise.resolve().then(() => __importStar(require("bcrypt")));
+                // Create Admin User
+                const adminPassword = await hash("Admin123!", 10);
+                const admin = await prisma_1.default.user.upsert({
+                    where: { email: "admin@kawane.com" },
+                    update: {},
+                    create: {
+                        name: "Admin Kawane",
+                        email: "admin@kawane.com",
+                        password: adminPassword,
+                        role: "ADMIN",
+                        isVerified: true,
+                        isDeleted: false,
+                    },
+                });
+                // Create Staff User
+                const staffPassword = await hash("Staff123!", 10);
+                const staff = await prisma_1.default.user.upsert({
+                    where: { email: "staff@kawane.com" },
+                    update: {},
+                    create: {
+                        name: "Staff Kawane",
+                        email: "staff@kawane.com",
+                        password: staffPassword,
+                        role: "STAFF",
+                        isVerified: true,
+                        isDeleted: false,
+                    },
+                });
+                // Create Test Customers
+                const customerPassword = await hash("Customer123!", 10);
+                const customer1 = await prisma_1.default.user.upsert({
+                    where: { email: "customer@kawane.com" },
+                    update: {},
+                    create: {
+                        name: "Test Customer",
+                        email: "customer@kawane.com",
+                        password: customerPassword,
+                        role: "CUSTOMER",
+                        isVerified: true,
+                        isDeleted: false,
+                    },
+                });
+                const customer2 = await prisma_1.default.user.upsert({
+                    where: { email: "john@example.com" },
+                    update: {},
+                    create: {
+                        name: "John Doe",
+                        email: "john@example.com",
+                        password: customerPassword,
+                        role: "CUSTOMER",
+                        isVerified: true,
+                        isDeleted: false,
+                    },
+                });
+                const customer3 = await prisma_1.default.user.upsert({
+                    where: { email: "jane@example.com" },
+                    update: {},
+                    create: {
+                        name: "Jane Smith",
+                        email: "jane@example.com",
+                        password: customerPassword,
+                        role: "CUSTOMER",
+                        isVerified: true,
+                        isDeleted: false,
+                    },
+                });
+                const customer4 = await prisma_1.default.user.upsert({
+                    where: { email: "budi@example.com" },
+                    update: {},
+                    create: {
+                        name: "Budi Santoso",
+                        email: "budi@example.com",
+                        password: customerPassword,
+                        role: "CUSTOMER",
+                        isVerified: true,
+                        isDeleted: false,
+                    },
+                });
+                const customer5 = await prisma_1.default.user.upsert({
+                    where: { email: "sari@example.com" },
+                    update: {},
+                    create: {
+                        name: "Sari Indah",
+                        email: "sari@example.com",
+                        password: customerPassword,
+                        role: "CUSTOMER",
+                        isVerified: true,
+                        isDeleted: false,
+                    },
+                });
+                res.json({
+                    success: true,
+                    message: "Users seeded successfully",
+                    data: {
+                        totalUsers: 7,
+                        users: [
+                            { email: "admin@kawane.com", role: "ADMIN" },
+                            { email: "staff@kawane.com", role: "STAFF" },
+                            { email: "customer@kawane.com", role: "CUSTOMER" },
+                            { email: "john@example.com", role: "CUSTOMER" },
+                            { email: "jane@example.com", role: "CUSTOMER" },
+                            { email: "budi@example.com", role: "CUSTOMER" },
+                            { email: "sari@example.com", role: "CUSTOMER" },
+                        ],
+                    },
+                });
+            }
+            catch (error) {
+                console.error("Error seeding users:", error);
+                res.status(500).json({
+                    success: false,
+                    message: "Failed to seed users",
                     error: error instanceof Error ? error.message : "Unknown error",
                 });
             }
