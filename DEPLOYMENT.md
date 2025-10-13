@@ -116,3 +116,4 @@ RATE_LIMIT_AUTH_MAX=10
    - Compile TypeScript ke JavaScript
    - Copy template files ke folder dist
    - Generate Prisma client
+
