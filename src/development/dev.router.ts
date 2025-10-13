@@ -28,7 +28,7 @@ export class AdminToolsRouter {
     this.router.post("/seed-users", async (req: Request, res: Response) => {
       try {
         const { hash } = await import("bcrypt");
-        
+
         // Create Admin User
         const adminPassword = await hash("Admin123!", 10);
         const admin = await prisma.user.upsert({
@@ -284,9 +284,8 @@ export class AdminToolsRouter {
             error: error instanceof Error ? error.message : "Unknown error",
           });
         }
-        }
-      );
-
+      }
+    );
   }
 
   getRouter(): Router {
