@@ -20,16 +20,19 @@ export class DealCronService {
     const expireJob = cron.schedule("*/5 * * * *", async () => {
       try {
         console.log("🕐 Running deal expiration check...");
-        
+
         // Add timeout to prevent hanging connections
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Deal expiration check timeout')), 30000); // 30 seconds timeout
+          setTimeout(
+            () => reject(new Error("Deal expiration check timeout")),
+            30000
+          ); // 30 seconds timeout
         });
-        
+
         const result = await Promise.race([
           expireDealsService(),
-          timeoutPromise
-        ]);
+          timeoutPromise,
+        ]) as Awaited<ReturnType<typeof expireDealsService>>;
 
         if (result.expiredDealsCount > 0) {
           console.log(`✅ Expired ${result.expiredDealsCount} deals`);
@@ -46,16 +49,16 @@ export class DealCronService {
     const cleanupJob = cron.schedule("0 2 * * *", async () => {
       try {
         console.log("🧹 Running deal cleanup...");
-        
+
         // Add timeout to prevent hanging connections
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Deal cleanup timeout')), 60000); // 60 seconds timeout
+          setTimeout(() => reject(new Error("Deal cleanup timeout")), 60000); // 60 seconds timeout
         });
-        
+
         const result = await Promise.race([
           cleanupExpiredDealsService(),
-          timeoutPromise
-        ]);
+          timeoutPromise,
+        ]) as Awaited<ReturnType<typeof cleanupExpiredDealsService>>;
 
         if (result.cleanedUpDealsCount > 0) {
           console.log(

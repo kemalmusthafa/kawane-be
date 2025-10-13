@@ -53,53 +53,52 @@ export const expireDealsService = async () => {
             if (
               product.name.includes(deal.title) ||
               product.sku?.startsWith("DEAL-") ||
-              (product.description && product.description.includes("DEAL SPECIAL"))
+              (product.description &&
+                product.description.includes("DEAL SPECIAL"))
             ) {
               console.log(
                 `Deleting deal-specific product: ${product.name} (${product.id})`
               );
 
-              // Delete the product and all related data in nested transaction
-              await tx.$transaction(async (nestedTx) => {
-                // Delete product images
-                await nestedTx.productImage.deleteMany({
-                  where: { productId: product.id },
-                });
+              // Delete the product and all related data
+              // Delete product images
+              await tx.productImage.deleteMany({
+                where: { productId: product.id },
+              });
 
-                // Delete cart items
-                await nestedTx.cartItem.deleteMany({
-                  where: { productId: product.id },
-                });
+              // Delete cart items
+              await tx.cartItem.deleteMany({
+                where: { productId: product.id },
+              });
 
-                // Delete wishlist items
-                await nestedTx.wishlist.deleteMany({
-                  where: { productId: product.id },
-                });
+              // Delete wishlist items
+              await tx.wishlist.deleteMany({
+                where: { productId: product.id },
+              });
 
-                // Delete reviews
-                await nestedTx.review.deleteMany({
-                  where: { productId: product.id },
-                });
+              // Delete reviews
+              await tx.review.deleteMany({
+                where: { productId: product.id },
+              });
 
-                // Delete inventory logs
-                await nestedTx.inventoryLog.deleteMany({
-                  where: { productId: product.id },
-                });
+              // Delete inventory logs
+              await tx.inventoryLog.deleteMany({
+                where: { productId: product.id },
+              });
 
-                // Delete order items
-                await nestedTx.orderItem.deleteMany({
-                  where: { productId: product.id },
-                });
+              // Delete order items
+              await tx.orderItem.deleteMany({
+                where: { productId: product.id },
+              });
 
-                // Delete deal product relationship
-                await nestedTx.dealProduct.deleteMany({
-                  where: { productId: product.id },
-                });
+              // Delete deal product relationship
+              await tx.dealProduct.deleteMany({
+                where: { productId: product.id },
+              });
 
-                // Finally delete the product
-                await nestedTx.product.delete({
-                  where: { id: product.id },
-                });
+              // Finally delete the product
+              await tx.product.delete({
+                where: { id: product.id },
               });
             }
           }
@@ -147,13 +146,17 @@ export const cleanupExpiredDealsService = async () => {
         },
       });
 
-      console.log(`Found ${oldExpiredDeals.length} old expired deals to cleanup`);
+      console.log(
+        `Found ${oldExpiredDeals.length} old expired deals to cleanup`
+      );
 
       let cleanedUpCount = 0;
 
       for (const deal of oldExpiredDeals) {
         try {
-          console.log(`Cleaning up old expired deal: ${deal.title} (${deal.id})`);
+          console.log(
+            `Cleaning up old expired deal: ${deal.title} (${deal.id})`
+          );
 
           // Delete deal images
           await tx.dealImage.deleteMany({
@@ -170,7 +173,9 @@ export const cleanupExpiredDealsService = async () => {
             where: { id: deal.id },
           });
 
-          console.log(`Successfully cleaned up old expired deal: ${deal.title}`);
+          console.log(
+            `Successfully cleaned up old expired deal: ${deal.title}`
+          );
           cleanedUpCount++;
         } catch (dealError) {
           console.error(`Error cleaning up deal ${deal.id}:`, dealError);

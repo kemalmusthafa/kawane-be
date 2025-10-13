@@ -17,7 +17,14 @@ class DealCronService {
         const expireJob = node_cron_1.default.schedule("*/5 * * * *", async () => {
             try {
                 console.log("🕐 Running deal expiration check...");
-                const result = await (0, deal_expiration_service_1.expireDealsService)();
+                // Add timeout to prevent hanging connections
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error("Deal expiration check timeout")), 30000); // 30 seconds timeout
+                });
+                const result = await Promise.race([
+                    (0, deal_expiration_service_1.expireDealsService)(),
+                    timeoutPromise,
+                ]);
                 if (result.expiredDealsCount > 0) {
                     console.log(`✅ Expired ${result.expiredDealsCount} deals`);
                 }
@@ -27,13 +34,21 @@ class DealCronService {
             }
             catch (error) {
                 console.error("❌ Error in deal expiration cron job:", error);
+                // Don't throw error to prevent cron job from stopping
             }
         });
         // Run daily at 2 AM to cleanup old expired deals
         const cleanupJob = node_cron_1.default.schedule("0 2 * * *", async () => {
             try {
                 console.log("🧹 Running deal cleanup...");
-                const result = await (0, deal_expiration_service_1.cleanupExpiredDealsService)();
+                // Add timeout to prevent hanging connections
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error("Deal cleanup timeout")), 60000); // 60 seconds timeout
+                });
+                const result = await Promise.race([
+                    (0, deal_expiration_service_1.cleanupExpiredDealsService)(),
+                    timeoutPromise,
+                ]);
                 if (result.cleanedUpDealsCount > 0) {
                     console.log(`✅ Cleaned up ${result.cleanedUpDealsCount} old expired deals`);
                 }
@@ -43,6 +58,7 @@ class DealCronService {
             }
             catch (error) {
                 console.error("❌ Error in deal cleanup cron job:", error);
+                // Don't throw error to prevent cron job from stopping
             }
         });
         this.cronJobs.push(expireJob, cleanupJob);
