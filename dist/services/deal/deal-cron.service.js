@@ -21,10 +21,10 @@ class DealCronService {
                 const timeoutPromise = new Promise((_, reject) => {
                     setTimeout(() => reject(new Error("Deal expiration check timeout")), 30000); // 30 seconds timeout
                 });
-                const result = await Promise.race([
+                const result = (await Promise.race([
                     (0, deal_expiration_service_1.expireDealsService)(),
                     timeoutPromise,
-                ]);
+                ]));
                 if (result.expiredDealsCount > 0) {
                     console.log(`✅ Expired ${result.expiredDealsCount} deals`);
                 }
@@ -45,10 +45,10 @@ class DealCronService {
                 const timeoutPromise = new Promise((_, reject) => {
                     setTimeout(() => reject(new Error("Deal cleanup timeout")), 60000); // 60 seconds timeout
                 });
-                const result = await Promise.race([
+                const result = (await Promise.race([
                     (0, deal_expiration_service_1.cleanupExpiredDealsService)(),
                     timeoutPromise,
-                ]);
+                ]));
                 if (result.cleanedUpDealsCount > 0) {
                     console.log(`✅ Cleaned up ${result.cleanedUpDealsCount} old expired deals`);
                 }

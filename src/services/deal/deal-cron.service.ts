@@ -29,10 +29,10 @@ export class DealCronService {
           ); // 30 seconds timeout
         });
 
-        const result = await Promise.race([
+        const result = (await Promise.race([
           expireDealsService(),
           timeoutPromise,
-        ]) as Awaited<ReturnType<typeof expireDealsService>>;
+        ])) as Awaited<ReturnType<typeof expireDealsService>>;
 
         if (result.expiredDealsCount > 0) {
           console.log(`✅ Expired ${result.expiredDealsCount} deals`);
@@ -55,10 +55,10 @@ export class DealCronService {
           setTimeout(() => reject(new Error("Deal cleanup timeout")), 60000); // 60 seconds timeout
         });
 
-        const result = await Promise.race([
+        const result = (await Promise.race([
           cleanupExpiredDealsService(),
           timeoutPromise,
-        ]) as Awaited<ReturnType<typeof cleanupExpiredDealsService>>;
+        ])) as Awaited<ReturnType<typeof cleanupExpiredDealsService>>;
 
         if (result.cleanedUpDealsCount > 0) {
           console.log(
