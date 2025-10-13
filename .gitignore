@@ -160,6 +160,9 @@ temp-uploads/
 cache/
 redis-data/
 
+# Allow cache service files
+!src/services/cache/
+
 # IDE specific
 .vscode/settings.json
 .vscode/launch.json
