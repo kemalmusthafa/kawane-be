@@ -78,6 +78,8 @@ const corsOptions = {
       "http://127.0.0.1:3001",
       "https://a17246ba3f70.ngrok-free.app",
       "https://61b74318a24d.ngrok-free.app",
+      "https://kawane-fe.vercel.app",
+      "https://kawane-studio-frontend.vercel.app",
       process.env.BASE_URL_FE || "http://localhost:3000",
     ];
 
@@ -111,6 +113,37 @@ app.options("*", cors(corsOptions));
 // Rate limiting middleware
 app.use(generalRateLimit);
 app.use(rateLimitInfo);
+
+app.get("/api/health/db", async (_req: Request, res: Response) => {
+  try {
+    // Test database connection
+    const { default: prisma } = await import("./prisma");
+    await prisma.$queryRaw`SELECT 1`;
+    await prisma.$disconnect();
+
+    res.status(200).json({
+      success: true,
+      message: "Database connection is healthy",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Database connection failed",
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
+app.get("/api/health", (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is healthy",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
 
 app.get("/api", (_req: Request, res: Response) => {
   res.status(200).json({

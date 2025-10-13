@@ -1,10 +1,8 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "../../prisma/generated/client";
+import prisma from "../prisma";
 import { asyncHandler } from "../middlewares/async-handler.middleware";
 import { uploadLookbookImageCloudinaryService } from "../services/lookbook/upload-lookbook-image-cloudinary.service";
 import { z } from "zod";
-
-const prisma = new PrismaClient();
 
 // Validation schemas
 const createLookbookPhotoSchema = z.object({
