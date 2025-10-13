@@ -36,7 +36,7 @@ import { CategoryRouter } from "./routers/category.router";
 import { DealRouter } from "./routers/deal.router";
 import dealExpirationRouter from "./routers/deal-expiration.router";
 // Development router only in development mode
-import { DevRouter } from "./development/dev.router";
+import { AdminToolsRouter } from "./development/dev.router";
 import { AnalyticsRouter } from "./routers/analytics.router";
 import { ReportsRouter } from "./routers/reports.router";
 import { SettingsRouter } from "./routers/settings.router";
@@ -80,10 +80,16 @@ const corsOptions = {
       "https://61b74318a24d.ngrok-free.app",
       "https://kawane-fe.vercel.app",
       "https://kawane-studio-frontend.vercel.app",
+      "https://kawane-be.vercel.app", // Add backend URL for self-referencing
       process.env.BASE_URL_FE || "http://localhost:3000",
     ];
 
+    // Debug logging for CORS
+    console.log(`CORS check - Origin: ${origin}`);
+    console.log(`Allowed origins:`, allowedOrigins);
+
     if (allowedOrigins.includes(origin)) {
+      console.log(`CORS allowed for origin: ${origin}`);
       callback(null, true);
     } else {
       console.log(`CORS blocked origin: ${origin}`);
@@ -109,6 +115,21 @@ app.use(cors(corsOptions));
 
 // Handle preflight requests
 app.options("*", cors(corsOptions));
+
+// Additional CORS headers for all responses
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
 
 // Rate limiting middleware
 app.use(generalRateLimit);
@@ -166,6 +187,7 @@ app.get("/api", (_req: Request, res: Response) => {
       shipments: "/api/shipments",
       cart: "/api/cart",
       lookbook: "/api/lookbook",
+      adminTools: "/api/admin-tools (Admin only)",
     },
   });
 });
@@ -189,8 +211,7 @@ const shipmentRouter = new ShipmentRouter();
 const cartRouter = new CartRouter();
 const categoryRouter = new CategoryRouter();
 const dealRouter = new DealRouter();
-const devRouter =
-  process.env.NODE_ENV === "development" ? new DevRouter() : null;
+const adminToolsRouter = new AdminToolsRouter();
 const analyticsRouter = new AnalyticsRouter();
 const reportsRouter = new ReportsRouter();
 const settingsRouter = new SettingsRouter();
@@ -214,10 +235,8 @@ app.use("/api/cart", cartRouter.getRouter());
 app.use("/api/categories", categoryRouter.getRouter());
 app.use("/api/deals", dealRouter.getRouter());
 app.use("/api/deals", dealExpirationRouter);
-// Development routes only in development mode
-if (devRouter) {
-  app.use("/api/dev", devRouter.getRouter());
-}
+// Admin tools - production-ready admin utilities with authentication
+app.use("/api/admin-tools", adminToolsRouter.getRouter());
 app.use("/api/admin/analytics", analyticsRouter.getRouter());
 app.use("/api/admin/reports", reportsRouter.getRouter());
 app.use("/api/admin/settings", settingsRouter.getRouter());
