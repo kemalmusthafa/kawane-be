@@ -29,50 +29,50 @@ export class ProductRouter {
   }
 
   private initializeRoutes() {
-    // Get all products with pagination + caching
+    // Get all products with pagination (cache disabled)
     this.router.get(
       "/",
-      cacheProducts,
+      // cacheProducts, // DISABLED to reduce Supabase quota usage
       validateQuery(productQuerySchema),
       this.productController.getProductsController
     );
 
-    // Get product detail by ID + caching
+    // Get product detail by ID (cache disabled)
     this.router.get(
       "/:productId",
-      cacheProduct,
+      // cacheProduct, // DISABLED to reduce Supabase quota usage
       validateParams(productIdParamSchema),
       this.productController.getProductDetailController
     );
 
-    // Create new product (Admin only) + cache invalidation
+    // Create new product (Admin only) - cache invalidation disabled
     this.router.post(
       "/",
       requireAuth,
       requireAdmin,
       validateBody(createProductSchema),
-      invalidateCache(["products:*"]),
+      // invalidateCache(["products:*"]), // DISABLED to reduce Supabase quota usage
       this.productController.createProductController
     );
 
-    // Update product (Admin only) + cache invalidation
+    // Update product (Admin only) - cache invalidation disabled
     this.router.put(
       "/:productId",
       requireAuth,
       requireAdmin,
       validateParams(productIdParamSchema),
       validateBody(updateProductSchema),
-      invalidateCache(["products:*"]),
+      // invalidateCache(["products:*"]), // DISABLED to reduce Supabase quota usage
       this.productController.updateProductController
     );
 
-    // Delete product (Admin only) + cache invalidation
+    // Delete product (Admin only) - cache invalidation disabled
     this.router.delete(
       "/:productId",
       requireAuth,
       requireAdmin,
       validateParams(productIdParamSchema),
-      invalidateCache(["products:*"]),
+      // invalidateCache(["products:*"]), // DISABLED to reduce Supabase quota usage
       this.productController.deleteProductController
     );
   }
