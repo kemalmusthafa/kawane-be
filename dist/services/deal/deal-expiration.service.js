@@ -8,7 +8,7 @@ const prisma_1 = __importDefault(require("../../prisma"));
 const expireDealsService = async () => {
     const now = new Date();
     try {
-        // Use a single transaction to process all expired deals
+        // Use a single transaction to process all expired deals with timeout configuration
         const result = await prisma_1.default.$transaction(async (tx) => {
             // Find expired deals
             const expiredDeals = await tx.deal.findMany({
@@ -98,6 +98,9 @@ const expireDealsService = async () => {
                 expiredDealsCount: processedCount,
                 totalFound: expiredDeals.length,
             };
+        }, {
+            timeout: 30000, // 30 seconds timeout
+            isolationLevel: 'ReadCommitted', // Use less strict isolation level
         });
         return result;
     }
@@ -110,7 +113,7 @@ exports.expireDealsService = expireDealsService;
 const cleanupExpiredDealsService = async () => {
     const now = new Date();
     try {
-        // Use a single transaction to cleanup all old expired deals
+        // Use a single transaction to cleanup all old expired deals with timeout configuration
         const result = await prisma_1.default.$transaction(async (tx) => {
             // Find deals that have been expired for more than 30 days
             const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -155,6 +158,9 @@ const cleanupExpiredDealsService = async () => {
                 cleanedUpDealsCount: cleanedUpCount,
                 totalFound: oldExpiredDeals.length,
             };
+        }, {
+            timeout: 60000, // 60 seconds timeout for cleanup
+            isolationLevel: 'ReadCommitted', // Use less strict isolation level
         });
         return result;
     }

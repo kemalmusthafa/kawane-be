@@ -13,6 +13,10 @@ export const prisma =
         url: process.env.DATABASE_URL,
       },
     },
+    transactionOptions: {
+      timeout: 30000, // 30 seconds default timeout
+      isolationLevel: 'ReadCommitted',
+    },
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
