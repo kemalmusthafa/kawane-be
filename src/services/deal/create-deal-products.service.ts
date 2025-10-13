@@ -35,57 +35,36 @@ export const createDealProductsService = async (
   const dealProducts = [];
 
   for (const originalProduct of originalProducts) {
-    // Calculate discounted price
-    let discountedPrice = originalProduct.price;
-    let discountAmount = 0;
-
-    if (deal.type === "PERCENTAGE") {
-      discountAmount = (originalProduct.price * deal.value) / 100;
-      discountedPrice = originalProduct.price - discountAmount;
-    } else if (deal.type === "FIXED_AMOUNT") {
-      discountAmount = deal.value;
-      discountedPrice = Math.max(0, originalProduct.price - deal.value);
-    } else if (deal.type === "FLASH_SALE") {
-      discountedPrice = deal.value;
-      discountAmount = originalProduct.price - deal.value;
-    }
-
-    // Create new product for deal
-    const dealProduct = await prisma.product.create({
-      data: {
-        name: `${deal.title} (Deal)`,
-        description: `🎉 DEAL SPECIAL: ${
-          deal.title
-        }\n💰 Original Price: Rp ${originalProduct.price.toLocaleString()}\n🔥 Deal Price: Rp ${discountedPrice.toLocaleString()}\n💸 You Save: Rp ${discountAmount.toLocaleString()}\n\n${
-          originalProduct.description
-        }`,
-        price: discountedPrice,
-        stock: originalProduct.stock,
-        sku: `DEAL-${originalProduct.sku}-${deal.id.slice(-8)}`,
-        categoryId: originalProduct.categoryId,
-        status: "ACTIVE",
-        // Copy images from original product
-        images: {
-          create: originalProduct.images.map((img) => ({
-            url: img.url,
-          })),
+    // Check if this product is already in a deal
+    const existingDealProduct = await prisma.dealProduct.findFirst({
+      where: {
+        productId: originalProduct.id,
+        deal: {
+          status: "ACTIVE",
+          startDate: { lte: new Date() },
+          endDate: { gte: new Date() },
         },
       },
-      include: {
-        images: true,
-        category: true,
-      },
     });
 
-    // Create DealProduct relationship
-    await prisma.dealProduct.create({
+    if (existingDealProduct) {
+      throw new Error(
+        `Product "${originalProduct.name}" is already in an active deal`
+      );
+    }
+
+    // Create DealProduct relationship (NO NEW PRODUCT CREATED)
+    const dealProductRelation = await prisma.dealProduct.create({
       data: {
         dealId: deal.id,
-        productId: dealProduct.id,
+        productId: originalProduct.id,
       },
     });
 
-    dealProducts.push(dealProduct);
+    dealProducts.push({
+      ...originalProduct,
+      dealProductRelation,
+    });
   }
 
   return {

@@ -35,10 +35,12 @@ import { CartRouter } from "./routers/cart.router";
 import { CategoryRouter } from "./routers/category.router";
 import { DealRouter } from "./routers/deal.router";
 import dealExpirationRouter from "./routers/deal-expiration.router";
+// Development router only in development mode
 import { DevRouter } from "./development/dev.router";
 import { AnalyticsRouter } from "./routers/analytics.router";
 import { ReportsRouter } from "./routers/reports.router";
 import { SettingsRouter } from "./routers/settings.router";
+import { BestSellersRouter } from "./routers/best-sellers.router";
 import lookbookRouter from "./routers/lookbook.router";
 import { StockCronService } from "./services/inventory/stock-cron.service";
 import { DealCronService } from "./services/deal/deal-cron.service";
@@ -154,10 +156,12 @@ const shipmentRouter = new ShipmentRouter();
 const cartRouter = new CartRouter();
 const categoryRouter = new CategoryRouter();
 const dealRouter = new DealRouter();
-const devRouter = new DevRouter();
+const devRouter =
+  process.env.NODE_ENV === "development" ? new DevRouter() : null;
 const analyticsRouter = new AnalyticsRouter();
 const reportsRouter = new ReportsRouter();
 const settingsRouter = new SettingsRouter();
+const bestSellersRouter = new BestSellersRouter();
 
 app.use("/api/auth", authRouter.getRouter());
 app.use("/api/users", userRouter.getRouter());
@@ -177,10 +181,14 @@ app.use("/api/cart", cartRouter.getRouter());
 app.use("/api/categories", categoryRouter.getRouter());
 app.use("/api/deals", dealRouter.getRouter());
 app.use("/api/deals", dealExpirationRouter);
-app.use("/api/dev", devRouter.getRouter());
+// Development routes only in development mode
+if (devRouter) {
+  app.use("/api/dev", devRouter.getRouter());
+}
 app.use("/api/admin/analytics", analyticsRouter.getRouter());
 app.use("/api/admin/reports", reportsRouter.getRouter());
 app.use("/api/admin/settings", settingsRouter.getRouter());
+app.use("/api/best-sellers", bestSellersRouter.getRouter());
 app.use("/api/lookbook", lookbookRouter);
 
 app.use(notFoundHandler);

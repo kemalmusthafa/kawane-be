@@ -57,6 +57,14 @@ export class OrderRouter {
       validateBody(updateOrderStatusSchema),
       this.orderController.updateOrderStatusController
     );
+
+    // Cancel order (Customer only)
+    this.router.put(
+      "/:orderId/cancel",
+      requireAuth,
+      validateParams(orderIdParamSchema),
+      this.orderController.cancelOrderController
+    );
   }
 
   public getRouter(): Router {

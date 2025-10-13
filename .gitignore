@@ -19,6 +19,10 @@ build/
 out/
 *.tsbuildinfo
 
+# Development files
+src/development/
+src/scripts/
+
 # Logs
 logs/
 *.log

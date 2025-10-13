@@ -16,8 +16,8 @@ export class DealCronService {
 
     console.log("🚀 Starting deal expiration monitoring...");
 
-    // Run every hour to check for expired deals
-    const expireJob = cron.schedule("0 * * * *", async () => {
+    // Run every 5 minutes to check for expired deals (more frequent)
+    const expireJob = cron.schedule("*/5 * * * *", async () => {
       try {
         console.log("🕐 Running deal expiration check...");
         const result = await expireDealsService();

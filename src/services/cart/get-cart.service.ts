@@ -80,10 +80,27 @@ export const getCartService = async (data: GetCartData) => {
     return sum + price * item.quantity;
   }, 0);
 
-  // Add deal information to cart items
-  const cartItemsWithDeals = cart.items.map((item) => {
+  // Add deal information to cart items and filter out expired deals
+  const cartItemsWithDeals = [];
+  const expiredItems = [];
+
+  for (const item of cart.items) {
     const priceInfo = priceMap.get(item.productId);
-    return {
+
+    // Check if deal is expired
+    if (priceInfo && priceInfo.dealId) {
+      const deal = await prisma.deal.findUnique({
+        where: { id: priceInfo.dealId },
+      });
+
+      if (!deal || deal.status !== "ACTIVE" || deal.endDate < new Date()) {
+        // Deal is expired, mark for removal
+        expiredItems.push(item);
+        continue;
+      }
+    }
+
+    cartItemsWithDeals.push({
       ...item,
       product: {
         ...item.product,
@@ -100,8 +117,20 @@ export const getCartService = async (data: GetCartData) => {
             }
           : null,
       },
-    };
-  });
+    });
+  }
+
+  // Remove expired items from cart
+  if (expiredItems.length > 0) {
+    console.log(
+      `🧹 Removing ${expiredItems.length} expired deal items from cart`
+    );
+    await prisma.cartItem.deleteMany({
+      where: {
+        id: { in: expiredItems.map((item) => item.id) },
+      },
+    });
+  }
 
   return {
     cart: {

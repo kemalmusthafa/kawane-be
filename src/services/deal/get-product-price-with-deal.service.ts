@@ -37,6 +37,31 @@ export const getProductPriceWithDeal = async (
     throw new Error("Product not found");
   }
 
+  // Check if product is already discounted (has DEAL- prefix in SKU or DEAL SPECIAL in description)
+  const isAlreadyDiscounted =
+    product.sku?.startsWith("DEAL-") ||
+    product.description?.includes("DEAL SPECIAL");
+
+  // If product is already discounted, calculate original price and discount info
+  if (isAlreadyDiscounted) {
+    // For products already discounted, we need to calculate the original price
+    // Assuming 10% discount was applied (this should be configurable)
+    const discountPercentage = 10; // This should come from deal info or be configurable
+    const originalPrice = Math.round(
+      product.price / (1 - discountPercentage / 100)
+    );
+    const discountAmount = originalPrice - product.price;
+
+    return {
+      productId: product.id,
+      originalPrice: originalPrice,
+      discountedPrice: product.price,
+      discountAmount: discountAmount,
+      discountPercentage: discountPercentage,
+      isFlashSale: false,
+    };
+  }
+
   const activeDeal = product.dealProducts.find((dp) => dp.deal)?.deal;
 
   if (!activeDeal) {
@@ -103,6 +128,31 @@ export const getMultipleProductsPriceWithDeals = async (
   });
 
   return products.map((product) => {
+    // Check if product is already discounted (has DEAL- prefix in SKU or DEAL SPECIAL in description)
+    const isAlreadyDiscounted =
+      product.sku?.startsWith("DEAL-") ||
+      product.description?.includes("DEAL SPECIAL");
+
+    // If product is already discounted, calculate original price and discount info
+    if (isAlreadyDiscounted) {
+      // For products already discounted, we need to calculate the original price
+      // Assuming 10% discount was applied (this should be configurable)
+      const discountPercentage = 10; // This should come from deal info or be configurable
+      const originalPrice = Math.round(
+        product.price / (1 - discountPercentage / 100)
+      );
+      const discountAmount = originalPrice - product.price;
+
+      return {
+        productId: product.id,
+        originalPrice: originalPrice,
+        discountedPrice: product.price,
+        discountAmount: discountAmount,
+        discountPercentage: discountPercentage,
+        isFlashSale: false,
+      };
+    }
+
     const activeDeal = product.dealProducts.find((dp) => dp.deal)?.deal;
 
     if (!activeDeal) {

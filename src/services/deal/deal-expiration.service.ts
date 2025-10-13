@@ -30,14 +30,25 @@ export const expireDealsService = async () => {
         data: { status: "EXPIRED" },
       });
 
-      // Delete deal products (products created specifically for this deal)
+      // Delete deal product relationships (NO PRODUCTS DELETED - only relationships)
+      console.log(
+        `Removing deal relationships for ${deal.dealProducts.length} products`
+      );
+
+      await prisma.dealProduct.deleteMany({
+        where: { dealId: deal.id },
+      });
+
+      // Also check for any deal-specific products that might still exist
+      // (from old system where products were created specifically for deals)
       for (const dealProduct of deal.dealProducts) {
         const product = dealProduct.product;
 
         // Check if this is a deal-specific product (created for the deal)
         if (
           product.name.includes(deal.title) ||
-          product.sku?.startsWith("DEAL-")
+          product.sku?.startsWith("DEAL-") ||
+          (product.description && product.description.includes("DEAL SPECIAL"))
         ) {
           console.log(
             `Deleting deal-specific product: ${product.name} (${product.id})`

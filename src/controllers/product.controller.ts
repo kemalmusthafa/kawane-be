@@ -29,7 +29,7 @@ export class ProductController {
     }
   }
 
-  async getProductsController(req: Request, res: Response) {
+  async getProductsController(req: AuthRequest, res: Response) {
     try {
       // Use validated query data if available, otherwise fallback to req.query
       const queryData = (req as any).validatedQuery || req.query;
@@ -48,6 +48,10 @@ export class ProductController {
         sortOrder,
       } = queryData;
 
+      // Check if user is admin to include deal-specific products
+      const isAdmin = req.user?.role === "ADMIN";
+      const includeDealSpecific = isAdmin;
+
       console.log("Parsed parameters:", {
         search,
         categoryId,
@@ -59,6 +63,8 @@ export class ProductController {
         limit,
         sortBy,
         sortOrder,
+        includeDealSpecific,
+        userRole: req.user?.role,
       });
 
       const result = await getProductsService({
@@ -72,6 +78,7 @@ export class ProductController {
         limit: limit ? parseInt(limit as string) : 10,
         sortBy: sortBy as "name" | "price" | "createdAt",
         sortOrder: sortOrder as "asc" | "desc",
+        includeDealSpecific,
       });
 
       successResponse(res, result, "Products retrieved successfully");
@@ -87,7 +94,15 @@ export class ProductController {
       const { productId } = paramsData;
       const userId = req.user?.id;
 
-      const product = await getProductDetailService({ productId, userId });
+      // Check if user is admin to include deal-specific products
+      const isAdmin = req.user?.role === "ADMIN";
+      const includeDealSpecific = isAdmin;
+
+      const product = await getProductDetailService({
+        productId,
+        userId,
+        includeDealSpecific,
+      });
       successResponse(res, product, "Product detail retrieved successfully");
     } catch (error: any) {
       errorResponse(res, error.message, 400);

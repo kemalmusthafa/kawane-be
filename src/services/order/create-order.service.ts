@@ -109,6 +109,19 @@ export const createOrderService = async (data: CreateOrderData) => {
       );
     }
 
+    // 🔍 Validate deal expiration
+    if (priceInfo && priceInfo.dealId) {
+      const deal = await prisma.deal.findUnique({
+        where: { id: priceInfo.dealId },
+      });
+
+      if (!deal || deal.status !== "ACTIVE" || deal.endDate < new Date()) {
+        throw new Error(
+          `Deal for ${product.name} has expired. Please remove from cart and try again.`
+        );
+      }
+    }
+
     // Use deal price if available, otherwise use original price
     const finalPrice = priceInfo ? priceInfo.discountedPrice : product.price;
     const itemTotal = finalPrice * item.quantity;

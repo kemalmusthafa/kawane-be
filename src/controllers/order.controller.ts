@@ -4,6 +4,7 @@ import { getUserOrdersService } from "../services/order/get-user-orders.service"
 import { getAllOrdersService } from "../services/order/get-all-orders.service";
 import { updateOrderStatusService } from "../services/order/update-order-status.service";
 import { getOrderDetailService } from "../services/order/get-order-detail.service";
+import { cancelOrderService } from "../services/order/cancel-order.service";
 import {
   successResponse,
   errorResponse,
@@ -124,6 +125,24 @@ export class OrderController {
       });
 
       successResponse(res, order, "Order detail retrieved successfully");
+    } catch (error: any) {
+      errorResponse(res, error.message, 400);
+    }
+  }
+
+  async cancelOrderController(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.id;
+      // Use validated params data if available, otherwise fallback to req.params
+      const paramsData = (req as any).validatedParams || req.params;
+      const { orderId } = paramsData;
+
+      const result = await cancelOrderService({
+        orderId,
+        userId,
+      });
+
+      successResponse(res, result, "Order cancelled successfully");
     } catch (error: any) {
       errorResponse(res, error.message, 400);
     }

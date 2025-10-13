@@ -23,3 +23,5 @@ export const uploadDealCloudinary = multer({
   },
   fileFilter: fileFilter,
 });
+
+

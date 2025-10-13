@@ -4,9 +4,11 @@
   "description": "Backend API for Kawane Studio e-commerce platform",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npx tsc && cp -rv src/templates dist",
+    "build": "npx tsc && cp -rv src/templates dist && rm -rf dist/development dist/scripts",
     "start": "npm run build && node dist/index.js && set NODE_ENV=dev",
+    "start:prod": "NODE_ENV=production npm run build && node dist/index.js",
     "dev": "ts-node-dev src/index.ts",
+    "dev:prod": "NODE_ENV=production ts-node-dev src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "prisma generate",
     "seed": "ts-node prisma/seed.ts",
@@ -15,7 +17,9 @@
     "db:push": "npx prisma db push",
     "db:migrate": "npx prisma migrate dev",
     "db:generate": "npx prisma generate",
-    "db:studio": "npx prisma studio"
+    "db:studio": "npx prisma studio",
+    "midtrans:dev": "MIDTRANS_IS_PRODUCTION=false npm run dev",
+    "midtrans:prod": "MIDTRANS_IS_PRODUCTION=true npm run dev"
   },
   "keywords": [
     "e-commerce",

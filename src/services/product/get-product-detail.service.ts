@@ -3,15 +3,63 @@ import prisma from "../../prisma";
 interface GetProductDetailParams {
   productId: string;
   userId?: string;
+  includeDealSpecific?: boolean; // For admin access
 }
 
 export const getProductDetailService = async (
   params: GetProductDetailParams
 ) => {
-  const { productId, userId } = params;
+  const { productId, userId, includeDealSpecific = false } = params;
 
-  const product = await prisma.product.findUnique({
-    where: { id: productId },
+  const whereClause: any = { id: productId };
+
+  // Only exclude deal-specific products for public API (not admin)
+  if (!includeDealSpecific) {
+    // Handle null values properly for NOT contains queries
+    whereClause.AND = [
+      {
+        OR: [{ sku: null }, { NOT: { sku: { startsWith: "DEAL-" } } }],
+      },
+      {
+        OR: [
+          { description: null },
+          { description: "" },
+          { NOT: { description: { contains: "DEAL SPECIAL" } } },
+        ],
+      },
+      {
+        OR: [
+          { description: null },
+          { description: "" },
+          { NOT: { description: { contains: "🎉" } } },
+        ],
+      },
+      {
+        OR: [
+          { description: null },
+          { description: "" },
+          { NOT: { description: { contains: "💰" } } },
+        ],
+      },
+      {
+        OR: [
+          { description: null },
+          { description: "" },
+          { NOT: { description: { contains: "🔥" } } },
+        ],
+      },
+      {
+        OR: [
+          { description: null },
+          { description: "" },
+          { NOT: { description: { contains: "💸" } } },
+        ],
+      },
+    ];
+  }
+
+  const product = await prisma.product.findFirst({
+    where: whereClause,
     include: {
       category: true,
       images: true,

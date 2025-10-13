@@ -12,6 +12,7 @@ export interface GetProductsParams {
   limit?: number;
   sortBy?: "name" | "price" | "createdAt";
   sortOrder?: "asc" | "desc";
+  includeDealSpecific?: boolean; // For admin access
 }
 
 export const getProductsService = async (params: GetProductsParams = {}) => {
@@ -26,9 +27,55 @@ export const getProductsService = async (params: GetProductsParams = {}) => {
     limit = 10,
     sortBy = "createdAt",
     sortOrder = "desc",
+    includeDealSpecific = false, // Default to false for public API
   } = params;
 
   const filter: Prisma.ProductWhereInput = {};
+
+  // Only exclude deal-specific products for public API (not admin)
+  if (!includeDealSpecific) {
+    // Handle null values properly for NOT contains queries
+    filter.AND = [
+      {
+        OR: [{ sku: null }, { NOT: { sku: { startsWith: "DEAL-" } } }],
+      },
+      {
+        OR: [
+          { description: null },
+          { description: "" },
+          { NOT: { description: { contains: "DEAL SPECIAL" } } },
+        ],
+      },
+      {
+        OR: [
+          { description: null },
+          { description: "" },
+          { NOT: { description: { contains: "🎉" } } },
+        ],
+      },
+      {
+        OR: [
+          { description: null },
+          { description: "" },
+          { NOT: { description: { contains: "💰" } } },
+        ],
+      },
+      {
+        OR: [
+          { description: null },
+          { description: "" },
+          { NOT: { description: { contains: "🔥" } } },
+        ],
+      },
+      {
+        OR: [
+          { description: null },
+          { description: "" },
+          { NOT: { description: { contains: "💸" } } },
+        ],
+      },
+    ];
+  }
 
   if (search) {
     filter.OR = [
@@ -122,7 +169,32 @@ export const getProductsService = async (params: GetProductsParams = {}) => {
     const activeDeal = product.dealProducts.find((dp) => dp.deal)?.deal;
     let dealInfo = null;
 
-    if (activeDeal) {
+    // Check if product is already discounted (has DEAL- prefix in SKU or DEAL SPECIAL in description)
+    const isAlreadyDiscounted =
+      product.sku?.startsWith("DEAL-") ||
+      product.description?.includes("DEAL SPECIAL");
+
+    if (isAlreadyDiscounted) {
+      // For products already discounted, calculate original price and discount info
+      const discountPercentage = 10; // This should come from deal info or be configurable
+      const originalPrice = Math.round(
+        product.price / (1 - discountPercentage / 100)
+      );
+      const discountAmount = originalPrice - product.price;
+
+      dealInfo = {
+        id: "pre-discounted",
+        title: "Deal Special",
+        type: "PERCENTAGE",
+        value: discountPercentage,
+        isFlashSale: false,
+        originalPrice: originalPrice,
+        discountedPrice: product.price,
+        discountAmount: discountAmount,
+        discountPercentage: discountPercentage,
+        endDate: new Date(),
+      };
+    } else if (activeDeal) {
       let discountedPrice = product.price;
       let discountAmount = 0;
       let discountPercentage = 0;
