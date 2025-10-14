@@ -8,16 +8,29 @@ const prisma_1 = __importDefault(require("../../prisma"));
 const jsonwebtoken_1 = require("jsonwebtoken");
 const google_auth_library_1 = require("google-auth-library");
 const config_1 = require("../../utils/config");
-const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.REDIRECT_URI || "http://localhost:3000/home/" // Dynamic Redirect URI
+// Validate environment variables before creating client
+if (!process.env.GOOGLE_CLIENT_ID) {
+    throw new Error("GOOGLE_CLIENT_ID environment variable is not set");
+}
+if (!process.env.GOOGLE_CLIENT_SECRET) {
+    throw new Error("GOOGLE_CLIENT_SECRET environment variable is not set");
+}
+const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.REDIRECT_URI || "http://localhost:3000" // Default untuk development
 );
 const googleTokenService = async (input) => {
     const { code } = input;
     console.log("Google Token Service - Input:", {
         code: code.substring(0, 20) + "...",
     });
-    console.log("Google Token Service - Client ID:", process.env.GOOGLE_CLIENT_ID);
+    console.log("Google Token Service - Client ID:", process.env.GOOGLE_CLIENT_ID ? "SET" : "NOT SET", process.env.GOOGLE_CLIENT_ID?.substring(0, 20) + "...");
     console.log("Google Token Service - Client Secret:", process.env.GOOGLE_CLIENT_SECRET ? "SET" : "NOT SET");
     console.log("Google Token Service - Redirect URI:", process.env.REDIRECT_URI);
+    console.log("Google Token Service - All env vars:", {
+        NODE_ENV: process.env.NODE_ENV,
+        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? "SET" : "NOT SET",
+        GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ? "SET" : "NOT SET",
+        REDIRECT_URI: process.env.REDIRECT_URI || "NOT SET",
+    });
     try {
         // Exchange authorization code for tokens
         console.log("Exchanging authorization code for tokens...");
@@ -32,6 +45,9 @@ const googleTokenService = async (input) => {
             access_token: tokens.access_token ? "SET" : "NOT SET",
             id_token: tokens.id_token ? "SET" : "NOT SET",
         });
+        if (!tokens.id_token) {
+            throw new Error("No ID token received from Google");
+        }
         client.setCredentials(tokens);
         // Verify the ID token
         const ticket = await client.verifyIdToken({
@@ -92,6 +108,18 @@ const googleTokenService = async (input) => {
             stack: error instanceof Error ? error.stack : undefined,
             name: error instanceof Error ? error.name : undefined,
         });
+        // More specific error messages
+        if (error instanceof Error) {
+            if (error.message.includes("invalid_grant")) {
+                throw new Error("Authorization code expired or invalid");
+            }
+            else if (error.message.includes("redirect_uri_mismatch")) {
+                throw new Error("Redirect URI mismatch - check Google Console configuration");
+            }
+            else if (error.message.includes("invalid_client")) {
+                throw new Error("Invalid client credentials - check environment variables");
+            }
+        }
         throw new Error("Google authentication failed");
     }
 };
