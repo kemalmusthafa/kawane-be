@@ -8,7 +8,7 @@ const prisma_1 = __importDefault(require("../../prisma"));
 const jsonwebtoken_1 = require("jsonwebtoken");
 const google_auth_library_1 = require("google-auth-library");
 const config_1 = require("../../utils/config");
-const client = new google_auth_library_1.OAuth2Client(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.REDIRECT_URI || "http://localhost:3000" // Dynamic Redirect URI
+const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.REDIRECT_URI || "http://localhost:3000" // Dynamic Redirect URI
 );
 const googleTokenService = async (input) => {
     const { code } = input;
