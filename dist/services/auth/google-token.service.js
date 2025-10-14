@@ -8,7 +8,7 @@ const prisma_1 = __importDefault(require("../../prisma"));
 const jsonwebtoken_1 = require("jsonwebtoken");
 const google_auth_library_1 = require("google-auth-library");
 const config_1 = require("../../utils/config");
-const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.REDIRECT_URI || "http://localhost:3000" // Dynamic Redirect URI
+const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.REDIRECT_URI || "http://localhost:3000/home/" // Dynamic Redirect URI
 );
 const googleTokenService = async (input) => {
     const { code } = input;
@@ -21,6 +21,12 @@ const googleTokenService = async (input) => {
     try {
         // Exchange authorization code for tokens
         console.log("Exchanging authorization code for tokens...");
+        console.log("Code length:", code.length);
+        console.log("Client config:", {
+            clientId: process.env.GOOGLE_CLIENT_ID ? "SET" : "NOT SET",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET ? "SET" : "NOT SET",
+            redirectUri: process.env.REDIRECT_URI || "NOT SET",
+        });
         const { tokens } = await client.getToken(code);
         console.log("Tokens received:", {
             access_token: tokens.access_token ? "SET" : "NOT SET",
