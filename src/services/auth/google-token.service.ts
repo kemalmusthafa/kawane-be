@@ -6,7 +6,7 @@ import { appConfig } from "../../utils/config";
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  process.env.REDIRECT_URI || "http://localhost:3000/home/" // Dynamic Redirect URI
+  process.env.REDIRECT_URI || "http://localhost:3000" // Default untuk development
 );
 
 type GoogleTokenInput = {
