@@ -141,6 +141,9 @@ app.use((req, res, next) => {
     "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma"
   );
   res.header("Access-Control-Allow-Credentials", "true");
+  // Fix Cross-Origin-Opener-Policy for Google OAuth
+  res.header("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  res.header("Cross-Origin-Embedder-Policy", "unsafe-none");
   next();
 });
 

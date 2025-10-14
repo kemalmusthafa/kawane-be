@@ -154,6 +154,9 @@ app.use((req, res, next) => {
     res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma");
     res.header("Access-Control-Allow-Credentials", "true");
+    // Fix Cross-Origin-Opener-Policy for Google OAuth
+    res.header("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    res.header("Cross-Origin-Embedder-Policy", "unsafe-none");
     next();
 });
 // Rate limiting middleware

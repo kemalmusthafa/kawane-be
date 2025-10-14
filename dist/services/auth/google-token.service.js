@@ -17,6 +17,7 @@ const googleTokenService = async (input) => {
     });
     console.log("Google Token Service - Client ID:", process.env.GOOGLE_CLIENT_ID);
     console.log("Google Token Service - Client Secret:", process.env.GOOGLE_CLIENT_SECRET ? "SET" : "NOT SET");
+    console.log("Google Token Service - Redirect URI:", process.env.REDIRECT_URI);
     try {
         // Exchange authorization code for tokens
         console.log("Exchanging authorization code for tokens...");
