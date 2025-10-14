@@ -15,6 +15,14 @@ const snap = new midtrans_client_1.default.Snap({
 class MidtransService {
     static async createPayment(data) {
         try {
+            // Debug logging
+            console.log("=== MIDTRANS DEBUG ===");
+            console.log("MIDTRANS_SERVER_KEY:", config_1.appConfig.MIDTRANS_SERVER_KEY ? "SET" : "NOT SET");
+            console.log("MIDTRANS_CLIENT_KEY:", config_1.appConfig.MIDTRANS_CLIENT_KEY ? "SET" : "NOT SET");
+            console.log("MIDTRANS_IS_PRODUCTION:", config_1.appConfig.MIDTRANS_IS_PRODUCTION);
+            console.log("Order ID:", data.orderId);
+            console.log("Amount:", data.amount);
+            console.log("=====================");
             // Check if Midtrans keys are configured
             if (!config_1.appConfig.MIDTRANS_SERVER_KEY ||
                 config_1.appConfig.MIDTRANS_SERVER_KEY === "SB-Mid-server-your-server-key") {

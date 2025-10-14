@@ -36,6 +36,21 @@ export interface MidtransPaymentData {
 export class MidtransService {
   static async createPayment(data: MidtransPaymentData) {
     try {
+      // Debug logging
+      console.log("=== MIDTRANS DEBUG ===");
+      console.log(
+        "MIDTRANS_SERVER_KEY:",
+        appConfig.MIDTRANS_SERVER_KEY ? "SET" : "NOT SET"
+      );
+      console.log(
+        "MIDTRANS_CLIENT_KEY:",
+        appConfig.MIDTRANS_CLIENT_KEY ? "SET" : "NOT SET"
+      );
+      console.log("MIDTRANS_IS_PRODUCTION:", appConfig.MIDTRANS_IS_PRODUCTION);
+      console.log("Order ID:", data.orderId);
+      console.log("Amount:", data.amount);
+      console.log("=====================");
+
       // Check if Midtrans keys are configured
       if (
         !appConfig.MIDTRANS_SERVER_KEY ||
