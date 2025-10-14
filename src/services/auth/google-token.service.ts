@@ -112,6 +112,22 @@ export const googleTokenService = async (input: GoogleTokenInput) => {
       stack: error instanceof Error ? error.stack : undefined,
       name: error instanceof Error ? error.name : undefined,
     });
+
+    // More specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes("invalid_grant")) {
+        throw new Error("Authorization code expired or invalid");
+      } else if (error.message.includes("redirect_uri_mismatch")) {
+        throw new Error(
+          "Redirect URI mismatch - check Google Console configuration"
+        );
+      } else if (error.message.includes("invalid_client")) {
+        throw new Error(
+          "Invalid client credentials - check environment variables"
+        );
+      }
+    }
+
     throw new Error("Google authentication failed");
   }
 };
