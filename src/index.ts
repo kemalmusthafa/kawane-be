@@ -144,6 +144,7 @@ app.use((req, res, next) => {
   // Fix Cross-Origin-Opener-Policy for Google OAuth
   res.header("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
   res.header("Cross-Origin-Embedder-Policy", "unsafe-none");
+  res.header("Cross-Origin-Resource-Policy", "cross-origin");
   next();
 });
 

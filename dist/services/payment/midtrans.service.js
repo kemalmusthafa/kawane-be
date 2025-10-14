@@ -22,6 +22,8 @@ class MidtransService {
             console.log("MIDTRANS_IS_PRODUCTION:", config_1.appConfig.MIDTRANS_IS_PRODUCTION);
             console.log("Order ID:", data.orderId);
             console.log("Amount:", data.amount);
+            console.log("Customer Details:", JSON.stringify(data.customerDetails, null, 2));
+            console.log("Item Details:", JSON.stringify(data.itemDetails, null, 2));
             console.log("=====================");
             // Check if Midtrans keys are configured
             if (!config_1.appConfig.MIDTRANS_SERVER_KEY ||
