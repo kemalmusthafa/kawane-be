@@ -49,11 +49,3 @@ temp/
 # Ignore OS files
 .DS_Store
 Thumbs.db
-
-# Ensure all dist files are included
-!dist/
-!dist/**/*
-!prisma/
-!prisma/schema.prisma
-!package.json
-!package-lock.json
