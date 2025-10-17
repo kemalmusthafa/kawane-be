@@ -38,7 +38,8 @@ const async_handler_middleware_1 = require("../middlewares/async-handler.middlew
 // ✅ FALLBACK: Import with error handling for Vercel deployment
 let dashboardCacheService;
 try {
-    dashboardCacheService = require("../services/cache/dashboard-cache.service").dashboardCacheService;
+    dashboardCacheService =
+        require("../services/cache/dashboard-cache.service").dashboardCacheService;
 }
 catch (error) {
     console.warn("Dashboard cache service not available, using fallback");
@@ -56,8 +57,8 @@ catch (error) {
             ttl: 0,
             maxSize: 0,
             currentSize: 0,
-            keys: []
-        })
+            keys: [],
+        }),
     };
 }
 class DashboardController {
