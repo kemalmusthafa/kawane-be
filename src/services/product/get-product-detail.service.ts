@@ -63,6 +63,7 @@ export const getProductDetailService = async (
     include: {
       category: true,
       images: true,
+      sizes: true, // Include sizes data
       reviews: {
         include: {
           user: {

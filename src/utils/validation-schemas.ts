@@ -123,11 +123,11 @@ export const createProductSchema = z.object({
     .positive("Price must be positive")
     .min(0.01, "Price must be at least 0.01"),
 
-  sku: z
-    .string()
-    .min(3, "SKU must be at least 3 characters")
-    .max(50, "SKU cannot exceed 50 characters")
-    .optional(),
+  // sku: z
+  //   .string()
+  //   .min(3, "SKU must be at least 3 characters")
+  //   .max(50, "SKU cannot exceed 50 characters")
+  //   .optional(),
 
   stock: z
     .number()
@@ -136,6 +136,22 @@ export const createProductSchema = z.object({
     .default(0),
 
   categoryId: z.string().uuid("Invalid category ID").optional(),
+
+  sizes: z
+    .array(
+      z.object({
+        size: z
+          .string()
+          .min(1, "Size is required")
+          .max(20, "Size cannot exceed 20 characters"),
+        stock: z
+          .number()
+          .int("Stock must be an integer")
+          .min(0, "Stock cannot be negative")
+          .default(0),
+      })
+    )
+    .optional(),
 
   images: z.array(z.string().url("Invalid image URL")).optional(),
 });
@@ -165,6 +181,22 @@ export const updateProductSchema = z.object({
     .optional(),
 
   categoryId: z.string().min(1, "Category ID cannot be empty").optional(),
+
+  sizes: z
+    .array(
+      z.object({
+        size: z
+          .string()
+          .min(1, "Size is required")
+          .max(20, "Size cannot exceed 20 characters"),
+        stock: z
+          .number()
+          .int("Stock must be an integer")
+          .min(0, "Stock cannot be negative")
+          .default(0),
+      })
+    )
+    .optional(),
 
   images: z.array(z.string().url("Invalid image URL")).optional(),
 });
@@ -199,6 +231,7 @@ export const addToCartSchema = z.object({
     .positive("Quantity must be positive")
     .min(1, "Quantity must be at least 1")
     .max(100, "Quantity cannot exceed 100"),
+  size: z.string().optional(),
 });
 
 export const addDealToCartSchema = z.object({
@@ -239,6 +272,7 @@ export const createOrderSchema = z.object({
           .int("Quantity must be an integer")
           .positive("Quantity must be positive")
           .min(1, "Quantity must be at least 1"),
+        size: z.string().optional(), // ✅ Added size field
       })
     )
     .min(1, "At least one item is required"),
@@ -255,8 +289,8 @@ export const createOrderSchema = z.object({
     .max(500, "Shipping address cannot exceed 500 characters"),
 
   paymentMethod: z
-    .enum(["MIDTRANS", "BANK_TRANSFER", "CASH_ON_DELIVERY"])
-    .default("MIDTRANS"),
+    .enum(["WHATSAPP_MANUAL", "BANK_TRANSFER", "CASH_ON_DELIVERY"])
+    .default("WHATSAPP_MANUAL"),
 
   addressId: z.string().uuid("Invalid address ID").optional().nullable(),
 
@@ -271,12 +305,23 @@ export const updateOrderStatusSchema = z.object({
     "SHIPPED",
     "COMPLETED",
     "CANCELLED",
+    "WHATSAPP_PENDING",
+    "WHATSAPP_CONFIRMED",
   ]),
 });
 
 export const orderQuerySchema = z.object({
   status: z
-    .enum(["CHECKOUT", "PAID", "PENDING", "SHIPPED", "COMPLETED", "CANCELLED"])
+    .enum([
+      "CHECKOUT",
+      "PAID",
+      "PENDING",
+      "SHIPPED",
+      "COMPLETED",
+      "CANCELLED",
+      "WHATSAPP_PENDING",
+      "WHATSAPP_CONFIRMED",
+    ])
     .optional(),
   search: z.string().optional(),
   page: z.coerce.number().int().min(1, "Page must be at least 1").default(1),
@@ -289,8 +334,53 @@ export const orderQuerySchema = z.object({
 });
 
 // ========================================
-// 🏠 ADDRESS VALIDATION SCHEMAS
+// 📱 WHATSAPP ORDER VALIDATION SCHEMAS
 // ========================================
+
+export const createWhatsAppOrderSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        productId: z.string().uuid("Invalid product ID"),
+        quantity: z
+          .number()
+          .int("Quantity must be an integer")
+          .positive("Quantity must be positive")
+          .min(1, "Quantity must be at least 1"),
+      })
+    )
+    .min(1, "At least one item is required"),
+
+  shippingAddress: z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    phone: z.string().min(10, "Phone must be at least 10 characters"),
+    address: z.string().min(10, "Address must be at least 10 characters"),
+    city: z.string().min(2, "City must be at least 2 characters"),
+    postalCode: z.string().min(5, "Postal code must be at least 5 characters"),
+  }),
+
+  whatsappPhoneNumber: z
+    .string()
+    .min(10, "WhatsApp number must be at least 10 characters")
+    .regex(/^[0-9+\-\s()]+$/, "Invalid phone number format"),
+
+  notes: z.string().max(500, "Notes cannot exceed 500 characters").optional(),
+});
+
+export const updateWhatsAppOrderStatusSchema = z.object({
+  status: z.enum([
+    "WHATSAPP_PENDING",
+    "WHATSAPP_CONFIRMED",
+    "PENDING",
+    "SHIPPED",
+    "COMPLETED",
+    "CANCELLED",
+  ]),
+  adminNotes: z
+    .string()
+    .max(500, "Admin notes cannot exceed 500 characters")
+    .optional(),
+});
 
 export const createAddressSchema = z.object({
   label: z

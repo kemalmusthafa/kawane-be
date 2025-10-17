@@ -101,6 +101,7 @@ const getProductsService = async (params = {}) => {
         include: {
             category: true,
             images: true,
+            sizes: true,
             reviews: {
                 select: {
                     rating: true,

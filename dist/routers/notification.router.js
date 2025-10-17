@@ -15,6 +15,8 @@ class NotificationRouter {
     initializeRoutes() {
         // Get user notifications with pagination
         this.router.get("/", auth_middleware_1.requireAuth, (0, zod_validation_middleware_1.validateQuery)(validation_schemas_1.notificationQuerySchema), this.notificationController.getNotificationsController);
+        // Get unread notification count
+        this.router.get("/unread-count", auth_middleware_1.requireAuth, this.notificationController.getUnreadCountController);
         // Mark notifications as read
         this.router.post("/mark-read", auth_middleware_1.requireAuth, (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.markAsReadSchema), this.notificationController.markAsReadController);
     }

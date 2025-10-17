@@ -29,6 +29,13 @@ export class NotificationRouter {
       this.notificationController.getNotificationsController
     );
 
+    // Get unread notification count
+    this.router.get(
+      "/unread-count",
+      requireAuth,
+      this.notificationController.getUnreadCountController
+    );
+
     // Mark notifications as read
     this.router.post(
       "/mark-read",

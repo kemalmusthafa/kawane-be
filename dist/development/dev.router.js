@@ -245,7 +245,7 @@ class AdminToolsRouter {
                         const payment = await prisma_1.default.payment.create({
                             data: {
                                 orderId: order.id,
-                                method: "MIDTRANS",
+                                method: "WHATSAPP_MANUAL",
                                 amount: order.totalAmount,
                                 status: "PENDING",
                             },

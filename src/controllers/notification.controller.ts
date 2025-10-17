@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { getNotificationsService } from "../services/notification/get-notifications.service";
 import { markAsReadService } from "../services/notification/mark-as-read.service";
+import { getUnreadNotificationCountService } from "../services/notification/whatsapp-order-notification.service";
 import {
   successResponse,
   errorResponse,
@@ -44,6 +45,22 @@ export class NotificationController {
       });
 
       successResponse(res, result, "Notifications marked as read");
+    } catch (error: any) {
+      errorResponse(res, error.message, 400);
+    }
+  }
+
+  async getUnreadCountController(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.id;
+
+      const count = await getUnreadNotificationCountService(userId);
+
+      successResponse(
+        res,
+        { unreadCount: count },
+        "Unread count retrieved successfully"
+      );
     } catch (error: any) {
       errorResponse(res, error.message, 400);
     }

@@ -57,6 +57,7 @@ const getProductDetailService = async (params) => {
         include: {
             category: true,
             images: true,
+            sizes: true, // Include sizes data
             reviews: {
                 include: {
                     user: {

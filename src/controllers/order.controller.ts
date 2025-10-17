@@ -6,9 +6,16 @@ import { updateOrderStatusService } from "../services/order/update-order-status.
 import { getOrderDetailService } from "../services/order/get-order-detail.service";
 import { cancelOrderService } from "../services/order/cancel-order.service";
 import {
+  createWhatsAppOrderService,
+  updateWhatsAppOrderStatusService,
+  getWhatsAppOrdersService,
+} from "../services/order/whatsapp-order.service";
+import { createAdminWhatsAppOrderNotificationService } from "../services/notification/order-notification.service";
+import {
   successResponse,
   errorResponse,
 } from "../middlewares/async-handler.middleware";
+import prisma from "../prisma";
 
 interface AuthRequest extends Request {
   user?: {
@@ -30,11 +37,38 @@ export class OrderController {
         notes,
       } = req.body;
 
+      // Handle address creation if addressId is null
+      let finalAddressId = addressId;
+
+      if (!addressId && shippingAddress) {
+        // Create new address from shipping address string
+        // Expected format: "street, city, postalCode, country"
+        const addressParts = shippingAddress
+          .split(",")
+          .map((part: string) => part.trim());
+
+        const newAddress = await prisma.address.create({
+          data: {
+            userId,
+            detail: addressParts[0] || "",
+            city: addressParts[1] || "",
+            province: addressParts[3] || "Indonesia", // Use country as province if no province provided
+            postalCode: addressParts[2] || "",
+            isDefault: false,
+          },
+        });
+        finalAddressId = newAddress.id;
+      }
+
+      if (!finalAddressId) {
+        return errorResponse(res, "Address is required", 400);
+      }
+
       // Use the existing createOrderService with multiple products
       const order = await createOrderService({
         userId,
         items: items,
-        addressId: addressId || "temp-address", // We'll handle address creation in service
+        addressId: finalAddressId,
         totalAmount, // Pass totalAmount from frontend
       });
 
@@ -143,6 +177,80 @@ export class OrderController {
       });
 
       successResponse(res, result, "Order cancelled successfully");
+    } catch (error: any) {
+      errorResponse(res, error.message, 400);
+    }
+  }
+
+  // WhatsApp Order Methods
+  async createWhatsAppOrderController(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.user!.id;
+      const { items, shippingAddress, whatsappPhoneNumber, notes } = req.body;
+
+      // Validate required fields
+      if (!items || !shippingAddress || !whatsappPhoneNumber) {
+        throw new Error("Missing required fields");
+      }
+
+      // Create WhatsApp order
+      const result = await createWhatsAppOrderService({
+        userId,
+        items,
+        shippingAddress,
+        whatsappPhoneNumber,
+        notes,
+      });
+
+      successResponse(
+        res,
+        {
+          orderId: result.order.id,
+          whatsappOrderId: result.order.whatsappOrderId,
+          totalAmount: result.order.totalAmount,
+          whatsappMessage: result.whatsappMessage,
+          whatsappLink: result.whatsappLink,
+          orderItems: result.order.items,
+        },
+        "WhatsApp order created successfully"
+      );
+    } catch (error: any) {
+      errorResponse(res, error.message, 400);
+    }
+  }
+
+  async updateWhatsAppOrderStatusController(req: AuthRequest, res: Response) {
+    try {
+      const { orderId } = req.params;
+      const { status, adminNotes } = req.body;
+
+      if (!orderId || !status) {
+        throw new Error("Missing required fields");
+      }
+
+      const result = await updateWhatsAppOrderStatusService(
+        orderId,
+        status,
+        adminNotes
+      );
+
+      successResponse(
+        res,
+        result,
+        "WhatsApp order status updated successfully"
+      );
+    } catch (error: any) {
+      errorResponse(res, error.message, 400);
+    }
+  }
+
+  async getWhatsAppOrdersController(req: AuthRequest, res: Response) {
+    try {
+      const { status } = req.query;
+
+      const orders = await getWhatsAppOrdersService(status as any);
+
+      successResponse(res, orders, "WhatsApp orders retrieved successfully");
     } catch (error: any) {
       errorResponse(res, error.message, 400);
     }

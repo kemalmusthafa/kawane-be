@@ -36,9 +36,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentController = void 0;
 const create_payment_service_1 = require("../services/payment/create-payment.service");
 const update_payment_status_service_1 = require("../services/payment/update-payment-status.service");
+const update_payment_status_manual_service_1 = require("../services/payment/update-payment-status-manual.service");
 const get_payments_service_1 = require("../services/payment/get-payments.service");
 const midtrans_webhook_service_1 = require("../services/payment/midtrans-webhook.service");
 const config_1 = require("../utils/config");
+const client_1 = require("../../prisma/generated/client");
 const async_handler_middleware_1 = require("../middlewares/async-handler.middleware");
 class PaymentController {
     async getPaymentsController(req, res) {
@@ -80,6 +82,44 @@ class PaymentController {
         }
         catch (error) {
             (0, async_handler_middleware_1.errorResponse)(res, error.message, 400);
+        }
+    }
+    async updatePaymentStatusManualController(req, res) {
+        try {
+            const { orderId, status, adminNotes } = req.body;
+            if (!orderId || !status) {
+                return (0, async_handler_middleware_1.errorResponse)(res, "Order ID and status are required", 400);
+            }
+            // Convert frontend status to PaymentStatus enum
+            let paymentStatus;
+            switch (status.toLowerCase()) {
+                case "paid":
+                case "succeeded":
+                    paymentStatus = client_1.PaymentStatus.SUCCEEDED;
+                    break;
+                case "pending":
+                    paymentStatus = client_1.PaymentStatus.PENDING;
+                    break;
+                case "cancelled":
+                case "canceled":
+                    paymentStatus = client_1.PaymentStatus.CANCELLED;
+                    break;
+                case "expired":
+                    paymentStatus = client_1.PaymentStatus.EXPIRED;
+                    break;
+                default:
+                    return (0, async_handler_middleware_1.errorResponse)(res, `Invalid payment status: ${status}`, 400);
+            }
+            const result = await (0, update_payment_status_manual_service_1.updatePaymentStatusManualService)({
+                orderId,
+                status: paymentStatus,
+                adminNotes,
+            });
+            (0, async_handler_middleware_1.successResponse)(res, result, "Payment status updated successfully");
+        }
+        catch (error) {
+            console.error("Manual payment status update error:", error);
+            (0, async_handler_middleware_1.errorResponse)(res, error.message, 500);
         }
     }
     async midtransWebhookController(req, res) {

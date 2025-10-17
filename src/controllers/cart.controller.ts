@@ -43,12 +43,13 @@ export class CartController {
           .json({ success: false, message: "Unauthorized" });
       }
 
-      const { productId, quantity } = req.body;
+      const { productId, quantity, size } = req.body;
 
       const result = await addToCartService({
         userId,
         productId,
         quantity,
+        size,
       });
 
       res.json({

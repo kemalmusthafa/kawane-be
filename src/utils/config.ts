@@ -66,6 +66,4 @@ if (appConfig.JWT_SECRET.length < 32) {
   );
 }
 
-console.log("✅ Environment configuration loaded successfully");
-console.log(`🌍 Environment: ${appConfig.NODE_ENV}`);
-console.log(`🚀 Server will run on port: ${appConfig.PORT}`);
+// Environment configuration loaded successfully

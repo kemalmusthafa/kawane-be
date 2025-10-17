@@ -120,7 +120,8 @@ export const expireDealsService = async () => {
         };
       },
       {
-        timeout: 30000, // 30 seconds timeout
+        timeout: 120000, // 2 minutes timeout
+        maxWait: 30000, // 30 seconds max wait
         isolationLevel: "ReadCommitted", // Use less strict isolation level
       }
     );
@@ -200,7 +201,8 @@ export const cleanupExpiredDealsService = async () => {
         };
       },
       {
-        timeout: 60000, // 60 seconds timeout for cleanup
+        timeout: 180000, // 3 minutes timeout for cleanup
+        maxWait: 30000, // 30 seconds max wait
         isolationLevel: "ReadCommitted", // Use less strict isolation level
       }
     );

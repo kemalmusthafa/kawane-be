@@ -17,6 +17,10 @@ class AddressRouter {
         this.router.get("/", auth_middleware_1.requireAuth, (0, zod_validation_middleware_1.validateQuery)(validation_schemas_1.paginationSchema), this.addressController.getUserAddressesController);
         // Create new address
         this.router.post("/", auth_middleware_1.requireAuth, (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.createAddressSchema), this.addressController.createAddressController);
+        // Update address
+        this.router.put("/:id", auth_middleware_1.requireAuth, (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.createAddressSchema), this.addressController.updateAddressController);
+        // Delete address
+        this.router.delete("/:id", auth_middleware_1.requireAuth, this.addressController.deleteAddressController);
     }
     getRouter() {
         return this.router;

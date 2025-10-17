@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import { createPaymentService } from "../services/payment/create-payment.service";
 import { updatePaymentStatusService } from "../services/payment/update-payment-status.service";
+import { updatePaymentStatusManualService } from "../services/payment/update-payment-status-manual.service";
 import { getPaymentsService } from "../services/payment/get-payments.service";
 import { handleMidtransWebhook } from "../services/payment/midtrans-webhook.service";
 import { appConfig } from "../utils/config";
+import { PaymentStatus } from "../../prisma/generated/client";
 import {
   successResponse,
   errorResponse,
@@ -59,6 +61,48 @@ export class PaymentController {
       successResponse(res, payment, "Payment status updated successfully");
     } catch (error: any) {
       errorResponse(res, error.message, 400);
+    }
+  }
+
+  async updatePaymentStatusManualController(req: Request, res: Response) {
+    try {
+      const { orderId, status, adminNotes } = req.body;
+
+      if (!orderId || !status) {
+        return errorResponse(res, "Order ID and status are required", 400);
+      }
+
+      // Convert frontend status to PaymentStatus enum
+      let paymentStatus: PaymentStatus;
+      switch (status.toLowerCase()) {
+        case "paid":
+        case "succeeded":
+          paymentStatus = PaymentStatus.SUCCEEDED;
+          break;
+        case "pending":
+          paymentStatus = PaymentStatus.PENDING;
+          break;
+        case "cancelled":
+        case "canceled":
+          paymentStatus = PaymentStatus.CANCELLED;
+          break;
+        case "expired":
+          paymentStatus = PaymentStatus.EXPIRED;
+          break;
+        default:
+          return errorResponse(res, `Invalid payment status: ${status}`, 400);
+      }
+
+      const result = await updatePaymentStatusManualService({
+        orderId,
+        status: paymentStatus,
+        adminNotes,
+      });
+
+      successResponse(res, result, "Payment status updated successfully");
+    } catch (error: any) {
+      console.error("Manual payment status update error:", error);
+      errorResponse(res, error.message, 500);
     }
   }
 

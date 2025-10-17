@@ -54,6 +54,4 @@ exports.appConfig = {
 if (exports.appConfig.JWT_SECRET.length < 32) {
     throw new Error("❌ JWT_SECRET must be at least 32 characters long for security!");
 }
-console.log("✅ Environment configuration loaded successfully");
-console.log(`🌍 Environment: ${exports.appConfig.NODE_ENV}`);
-console.log(`🚀 Server will run on port: ${exports.appConfig.PORT}`);
+// Environment configuration loaded successfully

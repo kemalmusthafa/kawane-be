@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../prisma";
 import { createShipmentService } from "../services/shipment/create-shipment.service";
 import { updateShipmentService } from "../services/shipment/update-shipment.service";
+import { completeDeliveryService } from "../services/shipment/complete-delivery.service";
 import {
   getShipmentsService,
   getShipmentByIdService,
@@ -37,19 +38,53 @@ export class ShipmentController {
     }
   }
 
+  // Complete delivery (Staff/Admin only)
+  async completeDeliveryController(req: Request, res: Response) {
+    try {
+      const { shipmentId } = req.params;
+      const result = await completeDeliveryService({
+        shipmentId,
+        ...req.body,
+      });
+      successResponse(res, result, "Delivery completed successfully");
+    } catch (error: any) {
+      errorResponse(res, error.message, 400);
+    }
+  }
+
   // Get shipments with filtering and pagination
   async getShipmentsController(req: Request, res: Response) {
     try {
       const queryData = (req as any).validatedQuery || req.query;
-      const userId = (req as any).user?.id; // For customer to see their own shipments
+      const user = (req as any).user;
+      const userRole = user?.role;
+      const userId = user?.id;
+
+      console.log("🔍 getShipmentsController called with:", {
+        queryData,
+        userId,
+        userRole,
+        isAdmin: userRole === "ADMIN" || userRole === "STAFF",
+      });
+
+      // For admin/staff: don't pass userId (see all shipments)
+      // For customer: pass userId (see only their shipments)
+      const serviceUserId =
+        userRole === "ADMIN" || userRole === "STAFF" ? undefined : userId;
 
       const result = await getShipmentsService({
         ...queryData,
-        userId: userId, // Customer can only see their own shipments
+        userId: serviceUserId, // Admin sees all, Customer sees only their own
+      });
+
+      console.log("📦 getShipmentsController result:", {
+        shipmentsCount: result.shipments.length,
+        total: result.pagination.total,
       });
 
       successResponse(res, result, "Shipments retrieved successfully");
     } catch (error: any) {
+      console.error("❌ getShipmentsController error:", error);
       errorResponse(res, error.message, 500);
     }
   }
@@ -90,6 +125,11 @@ export class ShipmentController {
       const queryData = (req as any).validatedQuery || req.query;
       const { startDate, endDate } = queryData;
 
+      console.log("🔍 getShipmentStatsController called with:", {
+        startDate,
+        endDate,
+      });
+
       // Build date filter
       const dateFilter: any = {};
       if (startDate && endDate) {
@@ -99,15 +139,30 @@ export class ShipmentController {
         };
       }
 
-      // Get shipment statistics
-      const [totalShipments, shipmentsByCarrier] = await Promise.all([
-        prisma.shipment.count({ where: dateFilter }),
-        prisma.shipment.groupBy({
-          by: ["courier"],
-          where: dateFilter,
-          _count: { courier: true },
-        }),
-      ]);
+      console.log("🔍 getShipmentStatsController dateFilter:", dateFilter);
+
+      // Optimize: Use single query with aggregation instead of Promise.all
+      const shipmentsByCarrier = await prisma.shipment.groupBy({
+        by: ["courier"],
+        where: dateFilter,
+        _count: { courier: true },
+      });
+
+      console.log(
+        "📊 getShipmentStatsController shipmentsByCarrier:",
+        shipmentsByCarrier
+      );
+
+      // Calculate total from grouped results to avoid second query
+      const totalShipments = shipmentsByCarrier.reduce(
+        (total, item) => total + item._count.courier,
+        0
+      );
+
+      console.log(
+        "📊 getShipmentStatsController totalShipments:",
+        totalShipments
+      );
 
       const result = {
         totalShipments,
@@ -117,12 +172,15 @@ export class ShipmentController {
         })),
       };
 
+      console.log("📊 getShipmentStatsController result:", result);
+
       successResponse(
         res,
         result,
         "Shipment statistics retrieved successfully"
       );
     } catch (error: any) {
+      console.error("❌ getShipmentStatsController error:", error);
       errorResponse(res, error.message, 500);
     }
   }

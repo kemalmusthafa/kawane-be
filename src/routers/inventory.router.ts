@@ -58,7 +58,7 @@ export class InventoryRouter {
       "/monitor",
       requireAuth,
       requireStaff,
-      this.stockMonitoringController.monitorAllProductsController
+      this.stockMonitoringController.runStockMonitoringController
     );
 
     // Get stock summary (Staff/Admin only)

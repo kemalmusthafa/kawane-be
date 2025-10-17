@@ -75,6 +75,15 @@ export class ShipmentRouter {
       this.shipmentController.updateShipmentController
     );
 
+    // Complete delivery (Staff/Admin only)
+    this.router.post(
+      "/:shipmentId/complete",
+      requireAuth,
+      requireStaff,
+      validateParams(shipmentIdParamSchema),
+      this.shipmentController.completeDeliveryController
+    );
+
     // Delete shipment (Admin only)
     this.router.delete(
       "/:shipmentId",

@@ -74,9 +74,9 @@ const deal_expiration_router_1 = __importDefault(require("./routers/deal-expirat
 const dev_router_1 = require("./development/dev.router");
 const analytics_router_1 = require("./routers/analytics.router");
 const reports_router_1 = require("./routers/reports.router");
-const settings_router_1 = require("./routers/settings.router");
 const best_sellers_router_1 = require("./routers/best-sellers.router");
 const lookbook_router_1 = __importDefault(require("./routers/lookbook.router"));
+const stock_monitoring_router_1 = require("./routers/stock-monitoring.router");
 const deal_cron_service_1 = require("./services/deal/deal-cron.service");
 const error_handler_middleware_1 = require("./middlewares/error-handler.middleware");
 const rate_limit_middleware_1 = require("./middlewares/rate-limit.middleware");
@@ -119,15 +119,10 @@ const corsOptions = {
             "https://kawane-be.vercel.app", // Add backend URL for self-referencing
             process.env.BASE_URL_FE || "http://localhost:3000",
         ];
-        // Debug logging for CORS
-        console.log(`CORS check - Origin: ${origin}`);
-        console.log(`Allowed origins:`, allowedOrigins);
         if (allowedOrigins.includes(origin)) {
-            console.log(`CORS allowed for origin: ${origin}`);
             callback(null, true);
         }
         else {
-            console.log(`CORS blocked origin: ${origin}`);
             callback(new Error("Not allowed by CORS"), false);
         }
     },
@@ -238,8 +233,8 @@ const dealRouter = new deal_router_1.DealRouter();
 const adminToolsRouter = new dev_router_1.AdminToolsRouter();
 const analyticsRouter = new analytics_router_1.AnalyticsRouter();
 const reportsRouter = new reports_router_1.ReportsRouter();
-const settingsRouter = new settings_router_1.SettingsRouter();
 const bestSellersRouter = new best_sellers_router_1.BestSellersRouter();
+const stockMonitoringRouter = new stock_monitoring_router_1.StockMonitoringRouter();
 app.use("/api/auth", authRouter.getRouter());
 app.use("/api/users", userRouter.getRouter());
 app.use("/api/products", productRouter.getRouter());
@@ -262,7 +257,7 @@ app.use("/api/deals", deal_expiration_router_1.default);
 app.use("/api/admin-tools", adminToolsRouter.getRouter());
 app.use("/api/admin/analytics", analyticsRouter.getRouter());
 app.use("/api/admin/reports", reportsRouter.getRouter());
-app.use("/api/admin/settings", settingsRouter.getRouter());
+app.use("/api/admin/stock-monitoring", stockMonitoringRouter.getRouter());
 app.use("/api/best-sellers", bestSellersRouter.getRouter());
 app.use("/api/lookbook", lookbook_router_1.default);
 app.use(error_handler_middleware_1.notFoundHandler);
@@ -285,12 +280,8 @@ async function initializeRedis() {
 async function startServer() {
     await initializeRedis();
     app.listen(PORT, () => {
-        console.log(`🚀 Server is running on http://localhost:${PORT}/api`);
-        console.log(`📚 API Documentation available at http://localhost:${PORT}/api`);
-        // Redis Status: Connected/Disconnected (silent)
-        // 🚀 Start automatic stock monitoring (temporarily disabled)
-        // StockCronService.startStockMonitoring();
-        // 🚀 Start automatic deal expiration monitoring
+        // Server started successfully
+        // Start automatic deal expiration monitoring
         deal_cron_service_1.DealCronService.startDealExpirationMonitoring();
     });
 }

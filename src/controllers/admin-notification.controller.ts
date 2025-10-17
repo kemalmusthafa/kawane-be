@@ -53,9 +53,46 @@ export class AdminNotificationController {
     }
   }
 
+  async getUnreadCountController(req: Request, res: Response) {
+    try {
+      const unreadCount = await prisma.notification.count({
+        where: {
+          isRead: false,
+          isDeleted: false,
+        },
+      });
+
+      successResponse(
+        res,
+        { unreadCount },
+        "Unread count retrieved successfully"
+      );
+    } catch (error: any) {
+      errorResponse(res, error.message, 500);
+    }
+  }
+
   async markNotificationAsReadController(req: Request, res: Response) {
     try {
-      const { notificationId } = req.body;
+      const { notificationId, markAll } = req.body;
+
+      if (markAll) {
+        // Mark all notifications as read
+        await prisma.notification.updateMany({
+          where: {
+            isRead: false,
+            isDeleted: false,
+          },
+          data: { isRead: true },
+        });
+
+        successResponse(
+          res,
+          { success: true },
+          "All notifications marked as read"
+        );
+        return;
+      }
 
       if (!notificationId) {
         return errorResponse(res, "Notification ID is required", 400);

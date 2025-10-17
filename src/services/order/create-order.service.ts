@@ -1,10 +1,12 @@
 import prisma from "../../prisma";
-import { MidtransService } from "../payment/midtrans.service";
 import { getMultipleProductsPriceWithDeals } from "../deal/get-product-price-with-deal.service";
+import { PaymentMethod } from "@prisma/client";
+import { StockMonitoringService } from "../inventory/stock-monitoring.service";
 
 interface OrderItemData {
   productId: string;
   quantity: number;
+  size?: string;
 }
 
 interface CreateOrderData {
@@ -13,35 +15,39 @@ interface CreateOrderData {
   addressId: string;
   discountCode?: string;
   totalAmount?: number; // Added totalAmount support
+  paymentMethod?: string; // Added paymentMethod support
 }
 
 export const createOrderService = async (data: CreateOrderData) => {
+  // Debug: Log incoming order data
+  console.log(
+    "🛒 Creating order with items:",
+    data.items.map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      size: item.size,
+    }))
+  );
+
   const user = await prisma.user.findUnique({
     where: { id: data.userId },
   });
   if (!user) throw new Error("User not found");
 
-  // Handle address - if addressId is provided, use it; otherwise create a new address
+  // Handle address - if addressId is provided, use it; otherwise throw error
   let addressId = data.addressId;
   let address = null;
 
-  if (addressId && addressId !== "temp-address") {
-    address = await prisma.address.findUnique({
-      where: { id: addressId, userId: data.userId },
-    });
-    if (!address) throw new Error("Address not found");
-  } else {
-    // Create a temporary address for the order
-    address = await prisma.address.create({
-      data: {
-        userId: data.userId,
-        detail: "Temporary address for order",
-        city: "Unknown",
-        province: "Unknown",
-        postalCode: "00000",
-      },
-    });
-    addressId = address.id;
+  if (!addressId) {
+    throw new Error("Address ID is required");
+  }
+
+  address = await prisma.address.findUnique({
+    where: { id: addressId, userId: data.userId },
+  });
+
+  if (!address) {
+    throw new Error("Address not found");
   }
 
   let discount = null;
@@ -84,6 +90,7 @@ export const createOrderService = async (data: CreateOrderData) => {
     productId: string;
     quantity: number;
     price: number;
+    size?: string;
     originalPrice?: number;
     dealId?: string;
     dealTitle?: string;
@@ -131,6 +138,7 @@ export const createOrderService = async (data: CreateOrderData) => {
       productId: item.productId,
       quantity: item.quantity,
       price: finalPrice,
+      size: item.size,
       originalPrice: priceInfo ? priceInfo.originalPrice : undefined,
       dealId: priceInfo?.dealId,
       dealTitle: priceInfo?.dealTitle,
@@ -140,12 +148,6 @@ export const createOrderService = async (data: CreateOrderData) => {
   }
 
   // Use provided totalAmount if available, otherwise use calculated amount
-  console.log("=== CREATE ORDER SERVICE DEBUG ===");
-  console.log("Provided totalAmount:", data.totalAmount);
-  console.log("Calculated totalAmount:", calculatedTotalAmount);
-  console.log("Using provided totalAmount?", !!data.totalAmount);
-  console.log("===================================");
-
   const totalAmount = data.totalAmount || calculatedTotalAmount;
 
   let finalAmount = totalAmount;
@@ -193,6 +195,43 @@ export const createOrderService = async (data: CreateOrderData) => {
       });
     }
 
+    // Create notification for admin about new order
+    const adminUsers = await tx.user.findMany({
+      where: {
+        role: { in: ["ADMIN", "STAFF"] },
+      },
+      select: { id: true },
+    });
+
+    const adminNotifications = adminUsers.map((admin) => ({
+      userId: admin.id,
+      title: "🛒 New Order Received",
+      description: `New order #${newOrder.id
+        .substring(0, 8)
+        .toUpperCase()} from ${
+        user.name
+      } - Total: Rp ${finalAmount.toLocaleString("id-ID")}`,
+      type: "ORDER",
+      priority: "HIGH",
+      url: `/admin/orders/${newOrder.id}`,
+      isRead: false,
+      data: JSON.stringify({
+        orderId: newOrder.id,
+        customerName: user.name,
+        customerEmail: user.email,
+        totalAmount: finalAmount,
+        itemCount: data.items.length,
+        orderItems: data.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+      }),
+    }));
+
+    await tx.notification.createMany({
+      data: adminNotifications,
+    });
+
     if (discount) {
       await tx.discount.update({
         where: { id: discount.id },
@@ -203,106 +242,43 @@ export const createOrderService = async (data: CreateOrderData) => {
     return newOrder;
   });
 
-  // Create Midtrans payment
+  // Create payment record for WhatsApp manual payment
   let paymentUrl = null;
   let paymentToken = null;
 
-  console.log("=== STARTING MIDTRANS INTEGRATION ===");
-  console.log("Order created successfully:", order.id);
-  console.log("Order total amount:", order.totalAmount);
-
   try {
-    const midtransData = {
-      orderId: order.id,
-      amount: order.totalAmount,
-      customerDetails: {
-        firstName: user.name.split(" ")[0] || user.name,
-        lastName: user.name.split(" ").slice(1).join(" ") || "",
-        email: user.email,
-        phone: user.phone || "08123456789",
-      },
-      shippingAddress: {
-        firstName: user.name.split(" ")[0] || user.name,
-        lastName: user.name.split(" ").slice(1).join(" ") || "",
-        address: address.detail,
-        city: address.city,
-        postalCode: address.postalCode || "00000",
-        phone: user.phone || "08123456789",
-      },
-      itemDetails: order.items.map((item) => ({
-        id: item.productId,
-        price: item.price,
-        quantity: item.quantity,
-        name:
-          item.product.name.length > 50
-            ? item.product.name.substring(0, 47) + "..."
-            : item.product.name,
-      })),
-    };
-
-    // Validate amount calculation
-    const calculatedTotal = midtransData.itemDetails.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
-
-    console.log("=== MIDTRANS INTEGRATION ===");
-    console.log("Order ID:", order.id);
-    console.log("Total Amount:", order.totalAmount);
-    console.log("Calculated Total:", calculatedTotal);
-    console.log("Amount Match:", order.totalAmount === calculatedTotal);
-    console.log("Midtrans data:", JSON.stringify(midtransData, null, 2));
-
-    // Ensure amount calculation is correct
-    if (order.totalAmount !== calculatedTotal) {
-      console.error("Amount mismatch detected!");
-      console.error("Order total:", order.totalAmount);
-      console.error("Calculated total:", calculatedTotal);
-      throw new Error(
-        `Amount mismatch: Order total (${order.totalAmount}) does not match calculated total (${calculatedTotal})`
-      );
-    }
-
-    const midtransResponse = await MidtransService.createPayment(midtransData);
-    paymentUrl = midtransResponse.redirectUrl;
-    paymentToken = midtransResponse.token;
-
-    console.log("Midtrans response:", midtransResponse);
-    console.log("==========================");
-
     // Create payment record in database
     const payment = await prisma.payment.create({
       data: {
         orderId: order.id,
-        method: "MIDTRANS",
+        method:
+          (data.paymentMethod as PaymentMethod) ||
+          PaymentMethod.WHATSAPP_MANUAL,
         amount: order.totalAmount,
-        snapToken: midtransResponse.token,
-        snapRedirectUrl: midtransResponse.redirectUrl,
         status: "PENDING",
       },
     });
 
-    console.log("✅ Payment record created:", payment.id);
+    // For WhatsApp manual payment, we don't need paymentUrl or paymentToken
+    // The order will be processed manually via WhatsApp
+    paymentUrl = null;
+    paymentToken = null;
   } catch (error) {
-    console.error("=== MIDTRANS ERROR ===");
-    console.error("Failed to create Midtrans payment:", error);
+    console.error("=== PAYMENT CREATION ERROR ===");
+    console.error("Failed to create payment record:", error);
     console.error("Error details:", error);
-    console.error("=====================");
+    console.error("==============================");
+    throw error;
+  }
 
-    // Even if Midtrans fails, we should still create a payment record
-    try {
-      const payment = await prisma.payment.create({
-        data: {
-          orderId: order.id,
-          method: "MIDTRANS",
-          amount: order.totalAmount,
-          status: "PENDING",
-        },
-      });
-      console.log("✅ Payment record created (fallback):", payment.id);
-    } catch (paymentError) {
-      console.error("❌ Failed to create payment record:", paymentError);
+  // Monitor stock levels after order creation
+  try {
+    for (const item of data.items) {
+      await StockMonitoringService.monitorSingleProduct(item.productId);
     }
+  } catch (error) {
+    console.error("Stock monitoring failed:", error);
+    // Don't throw error here as order is already created successfully
   }
 
   return {

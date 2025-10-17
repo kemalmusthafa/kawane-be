@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createShipmentService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
+const client_1 = require("@prisma/client");
 const createShipmentService = async (data) => {
     try {
         // Check if order exists and is ready for shipment
@@ -12,6 +13,7 @@ const createShipmentService = async (data) => {
             where: { id: data.orderId },
             include: {
                 user: true,
+                payment: true, // ✅ FIXED: Include payment data
                 items: {
                     include: {
                         product: true,
@@ -22,7 +24,22 @@ const createShipmentService = async (data) => {
         if (!order) {
             throw new Error("Order not found");
         }
-        if (order.status !== "PAID" && order.status !== "PENDING") {
+        console.log("🔍 createShipmentService order found:", {
+            id: order.id,
+            status: order.status,
+            paymentStatus: order.payment?.status,
+        });
+        // ✅ FIXED: More flexible order status validation using enum
+        const isReadyForShipment = order.status === client_1.OrderStatus.PAID ||
+            order.status === client_1.OrderStatus.COMPLETED ||
+            (order.status === client_1.OrderStatus.PENDING &&
+                order.payment?.status === "SUCCEEDED");
+        if (!isReadyForShipment) {
+            console.log("❌ Order not ready for shipment:", {
+                orderId: order.id,
+                status: order.status,
+                paymentStatus: order.payment?.status,
+            });
             throw new Error("Order is not ready for shipment");
         }
         // Check if shipment already exists for this order
@@ -65,7 +82,7 @@ const createShipmentService = async (data) => {
         // Update order status to SHIPPED
         await prisma_1.default.order.update({
             where: { id: data.orderId },
-            data: { status: "SHIPPED" },
+            data: { status: client_1.OrderStatus.SHIPPED },
         });
         // Create notification for customer
         await prisma_1.default.notification.create({

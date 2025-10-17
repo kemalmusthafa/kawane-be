@@ -15,6 +15,9 @@ class DashboardRouter {
     initializeRoutes() {
         // Get dashboard statistics (Staff/Admin only)
         this.router.get("/stats", auth_middleware_1.requireAuth, auth_middleware_1.requireStaff, (0, zod_validation_middleware_1.validateQuery)(validation_schemas_1.dashboardQuerySchema), this.dashboardController.getDashboardStatsController);
+        // ✅ NEW: Cache management endpoints (Admin only)
+        this.router.post("/cache/invalidate", auth_middleware_1.requireAuth, auth_middleware_1.requireStaff, this.dashboardController.invalidateCacheController);
+        this.router.get("/cache/stats", auth_middleware_1.requireAuth, auth_middleware_1.requireStaff, this.dashboardController.getCacheStatsController);
     }
     getRouter() {
         return this.router;

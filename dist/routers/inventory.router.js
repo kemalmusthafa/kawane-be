@@ -23,7 +23,7 @@ class InventoryRouter {
         this.router.post("/logs", auth_middleware_1.requireAuth, auth_middleware_1.requireStaff, (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.createInventoryLogSchema), this.inventoryController.createInventoryLogController);
         // 🔔 STOCK MONITORING ENDPOINTS
         // Manual trigger stock monitoring (Staff/Admin only)
-        this.router.post("/monitor", auth_middleware_1.requireAuth, auth_middleware_1.requireStaff, this.stockMonitoringController.monitorAllProductsController);
+        this.router.post("/monitor", auth_middleware_1.requireAuth, auth_middleware_1.requireStaff, this.stockMonitoringController.runStockMonitoringController);
         // Get stock summary (Staff/Admin only)
         this.router.get("/summary", auth_middleware_1.requireAuth, auth_middleware_1.requireStaff, this.stockMonitoringController.getStockSummaryController);
         // Get low stock products (Staff/Admin only)

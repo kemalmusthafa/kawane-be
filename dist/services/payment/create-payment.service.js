@@ -38,8 +38,6 @@ const createPaymentService = async (data) => {
             method: data.method,
             amount: data.amount,
             transactionId: data.transactionId,
-            snapToken: data.snapToken,
-            snapRedirectUrl: data.snapRedirectUrl,
             status: client_1.PaymentStatus.PENDING,
         },
         include: {

@@ -6,7 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.addToCartService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 const addToCartService = async (data) => {
-    const { userId, productId, quantity } = data;
+    const { userId, productId, quantity, size } = data;
+    // Debug: Log the incoming request
+    console.log("🛒 Add to cart request:", { userId, productId, quantity, size });
     if (quantity <= 0) {
         throw new Error("Quantity must be greater than 0");
     }
@@ -58,8 +60,8 @@ const addToCartService = async (data) => {
             },
         });
     }
-    // Check if product already exists in cart
-    const existingItem = cart.items.find((item) => item.productId === productId);
+    // Check if product already exists in cart with same size
+    const existingItem = cart.items.find((item) => item.productId === productId && item.size === size);
     if (existingItem) {
         // Update quantity if item already exists
         const newQuantity = existingItem.quantity + quantity;
@@ -84,11 +86,18 @@ const addToCartService = async (data) => {
     }
     else {
         // Add new item to cart
+        console.log("🛒 Creating new cart item with data:", {
+            cartId: cart.id,
+            productId,
+            quantity,
+            size,
+        });
         const newItem = await prisma_1.default.cartItem.create({
             data: {
                 cartId: cart.id,
                 productId,
                 quantity,
+                size,
             },
             include: {
                 product: {
@@ -97,6 +106,12 @@ const addToCartService = async (data) => {
                     },
                 },
             },
+        });
+        console.log("🛒 Created cart item:", {
+            id: newItem.id,
+            productId: newItem.productId,
+            size: newItem.size,
+            quantity: newItem.quantity,
         });
         return {
             message: "Item added to cart successfully",

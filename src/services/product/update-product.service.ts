@@ -8,6 +8,7 @@ interface UpdateProductData {
   sku?: string;
   stock?: number;
   categoryId?: string;
+  size?: string;
   images?: string[];
 }
 
@@ -46,6 +47,7 @@ export const updateProductService = async (data: UpdateProductData) => {
   if (data.sku !== undefined) updateData.sku = data.sku;
   if (data.stock !== undefined) updateData.stock = data.stock;
   if (data.categoryId !== undefined) updateData.categoryId = data.categoryId;
+  if (data.size !== undefined) updateData.size = data.size;
 
   const updatedProduct = await prisma.product.update({
     where: { id: data.id },

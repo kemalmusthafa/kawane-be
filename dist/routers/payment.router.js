@@ -25,6 +25,8 @@ class PaymentRouter {
         this.router.post("/test-webhook", this.paymentController.midtransWebhookController);
         // Manual order status update for testing (no auth required)
         this.router.post("/update-order-status", this.paymentController.updateOrderStatusManuallyController);
+        // Manual payment status update for testing (no auth required)
+        this.router.post("/update-payment-status", this.paymentController.updatePaymentStatusManualController);
         // Development webhook endpoint (bypasses signature verification)
         this.router.post("/dev-webhook", this.paymentController.devWebhookController);
         // Development endpoint to list orders (no auth required)

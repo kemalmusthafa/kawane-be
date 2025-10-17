@@ -24,6 +24,8 @@ class ShipmentRouter {
         this.router.get("/:shipmentId", auth_middleware_1.requireAuth, (0, zod_validation_middleware_1.validateParams)(validation_schemas_1.shipmentIdParamSchema), this.shipmentController.getShipmentByIdController);
         // Update shipment (Staff/Admin only)
         this.router.put("/:shipmentId", auth_middleware_1.requireAuth, auth_middleware_1.requireStaff, (0, zod_validation_middleware_1.validateParams)(validation_schemas_1.shipmentIdParamSchema), (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.updateShipmentSchema), this.shipmentController.updateShipmentController);
+        // Complete delivery (Staff/Admin only)
+        this.router.post("/:shipmentId/complete", auth_middleware_1.requireAuth, auth_middleware_1.requireStaff, (0, zod_validation_middleware_1.validateParams)(validation_schemas_1.shipmentIdParamSchema), this.shipmentController.completeDeliveryController);
         // Delete shipment (Admin only)
         this.router.delete("/:shipmentId", auth_middleware_1.requireAuth, auth_middleware_1.requireAdmin, (0, zod_validation_middleware_1.validateParams)(validation_schemas_1.shipmentIdParamSchema), this.shipmentController.deleteShipmentController);
         // 🔍 PUBLIC TRACKING ENDPOINT

@@ -8,9 +8,14 @@ const prisma_1 = __importDefault(require("../../prisma"));
 const getShipmentsService = async (input) => {
     try {
         const { userId, orderId, status, carrier, page = 1, limit = 10, startDate, endDate, } = input;
+        console.log("🔍 getShipmentsService input:", input);
+        console.log("🔍 getShipmentsService userId:", userId);
+        console.log("🔍 getShipmentsService isAdmin:", !userId);
         const skip = (page - 1) * limit;
         // Build where clause
         const where = {};
+        // ✅ FIXED: Only filter by userId if it's provided (for customer view)
+        // For admin view, userId will be undefined, so no filter is applied
         if (userId) {
             where.order = {
                 userId: userId,
@@ -40,6 +45,7 @@ const getShipmentsService = async (input) => {
                 lte: new Date(endDate),
             };
         }
+        console.log("🔍 getShipmentsService where clause:", where);
         // Get shipments with pagination
         const [shipments, total] = await Promise.all([
             prisma_1.default.shipment.findMany({
@@ -75,15 +81,25 @@ const getShipmentsService = async (input) => {
             }),
             prisma_1.default.shipment.count({ where }),
         ]);
+        console.log("📦 getShipmentsService found:", shipments.length, "shipments");
+        console.log("📦 getShipmentsService total:", total);
+        console.log("📦 getShipmentsService sample shipment:", shipments[0]
+            ? {
+                id: shipments[0].id,
+                orderId: shipments[0].orderId,
+                courier: shipments[0].courier,
+                trackingNo: shipments[0].trackingNo,
+            }
+            : "No shipments found");
         const totalPages = Math.ceil(total / limit);
         const hasNextPage = page < totalPages;
         const hasPrevPage = page > 1;
-        return {
+        const result = {
             shipments: shipments.map((shipment) => ({
                 id: shipment.id,
                 orderId: shipment.orderId,
-                trackingNumber: shipment.trackingNo,
-                carrier: shipment.courier,
+                trackingNo: shipment.trackingNo, // ✅ FIXED: Use trackingNo instead of trackingNumber
+                courier: shipment.courier, // ✅ FIXED: Use courier instead of carrier
                 cost: shipment.cost,
                 estimatedDays: shipment.estimatedDays,
                 createdAt: shipment.createdAt,
@@ -104,6 +120,11 @@ const getShipmentsService = async (input) => {
                 hasPrevPage,
             },
         };
+        console.log("📦 getShipmentsService returning result:", {
+            shipmentsCount: result.shipments.length,
+            pagination: result.pagination,
+        });
+        return result;
     }
     catch (error) {
         console.error("❌ Get shipments failed:", error);

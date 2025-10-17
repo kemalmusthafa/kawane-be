@@ -36,6 +36,21 @@ export class AddressRouter {
       validateBody(createAddressSchema),
       this.addressController.createAddressController
     );
+
+    // Update address
+    this.router.put(
+      "/:id",
+      requireAuth,
+      validateBody(createAddressSchema),
+      this.addressController.updateAddressController
+    );
+
+    // Delete address
+    this.router.delete(
+      "/:id",
+      requireAuth,
+      this.addressController.deleteAddressController
+    );
   }
 
   public getRouter(): Router {

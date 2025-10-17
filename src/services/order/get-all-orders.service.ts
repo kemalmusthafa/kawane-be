@@ -23,8 +23,14 @@ export const getAllOrdersService = async (params: GetAllOrdersParams) => {
     ];
   }
 
+  // ✅ DEBUG: Log filter for debugging
+  console.log("🔍 getAllOrdersService filter:", filter);
+
   const countOrders = await prisma.order.count({ where: filter });
   const totalPages = Math.ceil(countOrders / limit);
+
+  // ✅ DEBUG: Log count for debugging
+  console.log("📊 Total orders found:", countOrders);
 
   const orders = await prisma.order.findMany({
     where: filter,
@@ -58,16 +64,31 @@ export const getAllOrdersService = async (params: GetAllOrdersParams) => {
     skip: limit * (page - 1),
   });
 
+  // ✅ DEBUG: Log orders for debugging
+  console.log("📦 Orders retrieved:", orders.length);
+  console.log(
+    "📦 First order sample:",
+    orders[0]
+      ? {
+          id: orders[0].id,
+          status: orders[0].status,
+          paymentStatus: orders[0].payment?.status,
+          hasShipment: !!orders[0].shipment,
+        }
+      : "No orders"
+  );
+
   // Transform orders to match frontend expectations
   const transformedOrders = orders.map((order) => ({
     id: order.id,
     orderNumber: order.id, // Use ID as order number for now
-    status: order.status.toLowerCase(),
-    paymentStatus: order.payment?.status?.toLowerCase() || "pending",
+    status: order.status, // ✅ FIXED: Keep original case
+    paymentStatus: order.payment?.status || "PENDING", // ✅ FIXED: Keep original case
     totalAmount: order.totalAmount,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
-    customer: {
+    user: {
+      // ✅ FIXED: Use 'user' instead of 'customer'
       id: order.user.id,
       name: order.user.name || "Unknown Customer",
       email: order.user.email,

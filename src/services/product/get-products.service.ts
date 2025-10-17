@@ -128,6 +128,7 @@ export const getProductsService = async (params: GetProductsParams = {}) => {
     include: {
       category: true,
       images: true,
+      sizes: true,
       reviews: {
         select: {
           rating: true,

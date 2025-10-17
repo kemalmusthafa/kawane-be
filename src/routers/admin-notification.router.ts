@@ -55,6 +55,14 @@ export class AdminNotificationRouter {
       this.adminNotificationController.getAdminNotificationsController
     );
 
+    // Get unread count
+    this.router.get(
+      "/unread-count",
+      requireAuth,
+      requireAdmin,
+      this.adminNotificationController.getUnreadCountController
+    );
+
     // Send general notification
     this.router.post(
       "/",

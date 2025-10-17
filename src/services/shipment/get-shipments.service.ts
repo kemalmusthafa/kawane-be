@@ -24,11 +24,17 @@ export const getShipmentsService = async (input: GetShipmentsInput) => {
       endDate,
     } = input;
 
+    console.log("🔍 getShipmentsService input:", input);
+    console.log("🔍 getShipmentsService userId:", userId);
+    console.log("🔍 getShipmentsService isAdmin:", !userId);
+
     const skip = (page - 1) * limit;
 
     // Build where clause
     const where: any = {};
 
+    // ✅ FIXED: Only filter by userId if it's provided (for customer view)
+    // For admin view, userId will be undefined, so no filter is applied
     if (userId) {
       where.order = {
         userId: userId,
@@ -59,6 +65,8 @@ export const getShipmentsService = async (input: GetShipmentsInput) => {
         lte: new Date(endDate),
       };
     }
+
+    console.log("🔍 getShipmentsService where clause:", where);
 
     // Get shipments with pagination
     const [shipments, total] = await Promise.all([
@@ -96,16 +104,30 @@ export const getShipmentsService = async (input: GetShipmentsInput) => {
       prisma.shipment.count({ where }),
     ]);
 
+    console.log("📦 getShipmentsService found:", shipments.length, "shipments");
+    console.log("📦 getShipmentsService total:", total);
+    console.log(
+      "📦 getShipmentsService sample shipment:",
+      shipments[0]
+        ? {
+            id: shipments[0].id,
+            orderId: shipments[0].orderId,
+            courier: shipments[0].courier,
+            trackingNo: shipments[0].trackingNo,
+          }
+        : "No shipments found"
+    );
+
     const totalPages = Math.ceil(total / limit);
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
-    return {
+    const result = {
       shipments: shipments.map((shipment) => ({
         id: shipment.id,
         orderId: shipment.orderId,
-        trackingNumber: shipment.trackingNo,
-        carrier: shipment.courier,
+        trackingNo: shipment.trackingNo, // ✅ FIXED: Use trackingNo instead of trackingNumber
+        courier: shipment.courier, // ✅ FIXED: Use courier instead of carrier
         cost: shipment.cost,
         estimatedDays: shipment.estimatedDays,
         createdAt: shipment.createdAt,
@@ -126,6 +148,13 @@ export const getShipmentsService = async (input: GetShipmentsInput) => {
         hasPrevPage,
       },
     };
+
+    console.log("📦 getShipmentsService returning result:", {
+      shipmentsCount: result.shipments.length,
+      pagination: result.pagination,
+    });
+
+    return result;
   } catch (error: any) {
     console.error("❌ Get shipments failed:", error);
     throw new Error("Failed to get shipments");

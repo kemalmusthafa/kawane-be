@@ -8,33 +8,34 @@ export class AnalyticsService {
     startDate.setDate(startDate.getDate() - period);
 
     // Get overview data
+    // Optimize: Split into smaller batches to avoid connection pool timeout
+    const [totalRevenue, totalOrders, totalCustomers, totalProducts] =
+      await Promise.all([
+        // Current period totals
+        prisma.order.aggregate({
+          where: {
+            createdAt: { gte: startDate },
+            status: "COMPLETED",
+          },
+          _sum: { totalAmount: true },
+        }),
+        prisma.order.count({
+          where: { createdAt: { gte: startDate } },
+        }),
+        prisma.user.count({
+          where: {
+            createdAt: { gte: startDate },
+            role: "CUSTOMER",
+          },
+        }),
+        prisma.product.count(),
+      ]);
+
     const [
-      totalRevenue,
-      totalOrders,
-      totalCustomers,
-      totalProducts,
       previousPeriodRevenue,
       previousPeriodOrders,
       previousPeriodCustomers,
     ] = await Promise.all([
-      // Current period totals
-      prisma.order.aggregate({
-        where: {
-          createdAt: { gte: startDate },
-          status: "COMPLETED",
-        },
-        _sum: { totalAmount: true },
-      }),
-      prisma.order.count({
-        where: { createdAt: { gte: startDate } },
-      }),
-      prisma.user.count({
-        where: {
-          createdAt: { gte: startDate },
-          role: "CUSTOMER",
-        },
-      }),
-      prisma.product.count(),
       // Previous period for comparison
       prisma.order.aggregate({
         where: {
@@ -145,42 +146,52 @@ export class AnalyticsService {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - period);
 
-    const topProducts = await prisma.orderItem.groupBy({
-      by: ["productId"],
-      where: {
-        order: {
-          createdAt: { gte: startDate },
-          status: "COMPLETED",
+    // ✅ OPTIMIZED: Use single transaction to avoid N+1 queries
+    const result = await prisma.$transaction(async (tx) => {
+      const topProducts = await tx.orderItem.groupBy({
+        by: ["productId"],
+        where: {
+          order: {
+            createdAt: { gte: startDate },
+            status: "COMPLETED",
+          },
         },
-      },
-      _sum: {
-        quantity: true,
-        price: true,
-      },
-      orderBy: {
         _sum: {
-          quantity: "desc",
+          quantity: true,
+          price: true,
         },
-      },
-      take: 5,
-    });
+        orderBy: {
+          _sum: {
+            quantity: "desc",
+          },
+        },
+        take: 5,
+      });
 
-    const productsWithDetails = await Promise.all(
-      topProducts.map(async (item) => {
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId },
-          select: { name: true },
-        });
+      // ✅ OPTIMIZED: Single query for all product details
+      const productIds = topProducts.map((item) => item.productId);
+      const products =
+        productIds.length > 0
+          ? await tx.product.findMany({
+              where: { id: { in: productIds } },
+              select: { id: true, name: true },
+            })
+          : [];
 
+      // Combine data efficiently
+      const productsWithDetails = topProducts.map((item) => {
+        const product = products.find((p) => p.id === item.productId);
         return {
           name: product?.name || "Unknown Product",
           sales: item._sum.quantity || 0,
           revenue: (item._sum.price || 0) * (item._sum.quantity || 0),
         };
-      })
-    );
+      });
 
-    return productsWithDetails;
+      return productsWithDetails;
+    });
+
+    return result;
   }
 
   private async getRecentOrders() {

@@ -65,6 +65,12 @@ export class PaymentRouter {
       this.paymentController.updateOrderStatusManuallyController
     );
 
+    // Manual payment status update for testing (no auth required)
+    this.router.post(
+      "/update-payment-status",
+      this.paymentController.updatePaymentStatusManualController
+    );
+
     // Development webhook endpoint (bypasses signature verification)
     this.router.post(
       "/dev-webhook",

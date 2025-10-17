@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reportsQuerySchema = exports.analyticsQuerySchema = exports.categoryQuerySchema = exports.updateCategorySchema = exports.createCategorySchema = exports.trackingNumberParamSchema = exports.shipmentIdParamSchema = exports.shipmentQuerySchema = exports.updateShipmentSchema = exports.createShipmentSchema = exports.flashSaleNotificationSchema = exports.wishlistNotificationSchema = exports.productLaunchNotificationSchema = exports.lowStockQuerySchema = exports.createInventoryLogSchema = exports.inventoryLogQuerySchema = exports.createStaffSchema = exports.createAdminSchema = exports.paginationSchema = exports.categoryIdParamSchema = exports.paymentIdParamSchema = exports.orderIdParamSchema = exports.productIdParamSchema = exports.idParamSchema = exports.toggleWishlistSchema = exports.createReviewSchema = exports.dashboardQuerySchema = exports.markAsReadSchema = exports.notificationQuerySchema = exports.updatePaymentStatusSchema = exports.createPaymentSchema = exports.createAddressSchema = exports.orderQuerySchema = exports.updateOrderStatusSchema = exports.createOrderSchema = exports.cartItemIdParamSchema = exports.updateCartItemSchema = exports.addDealToCartSchema = exports.addToCartSchema = exports.productQuerySchema = exports.updateProductSchema = exports.createProductSchema = exports.userQuerySchema = exports.updateUserSchema = exports.createUserSchema = exports.googleTokenSchema = exports.resetPasswordSchema = exports.forgotPasswordSchema = exports.loginSchema = exports.registerSchema = void 0;
-exports.validationSchemas = exports.updateSettingsSchema = exports.dealIdParamSchema = exports.dealQuerySchema = exports.updateDealSchema = exports.createDealSchema = exports.reportIdParamSchema = exports.generateReportSchema = void 0;
+exports.categoryQuerySchema = exports.updateCategorySchema = exports.createCategorySchema = exports.trackingNumberParamSchema = exports.shipmentIdParamSchema = exports.shipmentQuerySchema = exports.updateShipmentSchema = exports.createShipmentSchema = exports.flashSaleNotificationSchema = exports.wishlistNotificationSchema = exports.productLaunchNotificationSchema = exports.lowStockQuerySchema = exports.createInventoryLogSchema = exports.inventoryLogQuerySchema = exports.createStaffSchema = exports.createAdminSchema = exports.paginationSchema = exports.categoryIdParamSchema = exports.paymentIdParamSchema = exports.orderIdParamSchema = exports.productIdParamSchema = exports.idParamSchema = exports.toggleWishlistSchema = exports.createReviewSchema = exports.dashboardQuerySchema = exports.markAsReadSchema = exports.notificationQuerySchema = exports.updatePaymentStatusSchema = exports.createPaymentSchema = exports.createAddressSchema = exports.updateWhatsAppOrderStatusSchema = exports.createWhatsAppOrderSchema = exports.orderQuerySchema = exports.updateOrderStatusSchema = exports.createOrderSchema = exports.cartItemIdParamSchema = exports.updateCartItemSchema = exports.addDealToCartSchema = exports.addToCartSchema = exports.productQuerySchema = exports.updateProductSchema = exports.createProductSchema = exports.userQuerySchema = exports.updateUserSchema = exports.createUserSchema = exports.googleTokenSchema = exports.resetPasswordSchema = exports.forgotPasswordSchema = exports.loginSchema = exports.registerSchema = void 0;
+exports.validationSchemas = exports.updateSettingsSchema = exports.dealIdParamSchema = exports.dealQuerySchema = exports.updateDealSchema = exports.createDealSchema = exports.reportIdParamSchema = exports.generateReportSchema = exports.reportsQuerySchema = exports.analyticsQuerySchema = void 0;
 const zod_1 = require("zod");
 // ========================================
 // 🔐 AUTHENTICATION VALIDATION SCHEMAS
@@ -96,17 +96,30 @@ exports.createProductSchema = zod_1.z.object({
         .number()
         .positive("Price must be positive")
         .min(0.01, "Price must be at least 0.01"),
-    sku: zod_1.z
-        .string()
-        .min(3, "SKU must be at least 3 characters")
-        .max(50, "SKU cannot exceed 50 characters")
-        .optional(),
+    // sku: z
+    //   .string()
+    //   .min(3, "SKU must be at least 3 characters")
+    //   .max(50, "SKU cannot exceed 50 characters")
+    //   .optional(),
     stock: zod_1.z
         .number()
         .int("Stock must be an integer")
         .min(0, "Stock cannot be negative")
         .default(0),
     categoryId: zod_1.z.string().uuid("Invalid category ID").optional(),
+    sizes: zod_1.z
+        .array(zod_1.z.object({
+        size: zod_1.z
+            .string()
+            .min(1, "Size is required")
+            .max(20, "Size cannot exceed 20 characters"),
+        stock: zod_1.z
+            .number()
+            .int("Stock must be an integer")
+            .min(0, "Stock cannot be negative")
+            .default(0),
+    }))
+        .optional(),
     images: zod_1.z.array(zod_1.z.string().url("Invalid image URL")).optional(),
 });
 exports.updateProductSchema = zod_1.z.object({
@@ -130,6 +143,19 @@ exports.updateProductSchema = zod_1.z.object({
         .min(0, "Stock cannot be negative")
         .optional(),
     categoryId: zod_1.z.string().min(1, "Category ID cannot be empty").optional(),
+    sizes: zod_1.z
+        .array(zod_1.z.object({
+        size: zod_1.z
+            .string()
+            .min(1, "Size is required")
+            .max(20, "Size cannot exceed 20 characters"),
+        stock: zod_1.z
+            .number()
+            .int("Stock must be an integer")
+            .min(0, "Stock cannot be negative")
+            .default(0),
+    }))
+        .optional(),
     images: zod_1.z.array(zod_1.z.string().url("Invalid image URL")).optional(),
 });
 exports.productQuerySchema = zod_1.z.object({
@@ -160,6 +186,7 @@ exports.addToCartSchema = zod_1.z.object({
         .positive("Quantity must be positive")
         .min(1, "Quantity must be at least 1")
         .max(100, "Quantity cannot exceed 100"),
+    size: zod_1.z.string().optional(),
 });
 exports.addDealToCartSchema = zod_1.z.object({
     dealId: zod_1.z.string().uuid("Invalid deal ID"),
@@ -194,6 +221,7 @@ exports.createOrderSchema = zod_1.z.object({
             .int("Quantity must be an integer")
             .positive("Quantity must be positive")
             .min(1, "Quantity must be at least 1"),
+        size: zod_1.z.string().optional(), // ✅ Added size field
     }))
         .min(1, "At least one item is required"),
     totalAmount: zod_1.z
@@ -206,8 +234,8 @@ exports.createOrderSchema = zod_1.z.object({
         .min(10, "Shipping address must be at least 10 characters")
         .max(500, "Shipping address cannot exceed 500 characters"),
     paymentMethod: zod_1.z
-        .enum(["MIDTRANS", "BANK_TRANSFER", "CASH_ON_DELIVERY"])
-        .default("MIDTRANS"),
+        .enum(["WHATSAPP_MANUAL", "BANK_TRANSFER", "CASH_ON_DELIVERY"])
+        .default("WHATSAPP_MANUAL"),
     addressId: zod_1.z.string().uuid("Invalid address ID").optional().nullable(),
     notes: zod_1.z.string().max(500, "Notes cannot exceed 500 characters").optional(),
 });
@@ -219,11 +247,22 @@ exports.updateOrderStatusSchema = zod_1.z.object({
         "SHIPPED",
         "COMPLETED",
         "CANCELLED",
+        "WHATSAPP_PENDING",
+        "WHATSAPP_CONFIRMED",
     ]),
 });
 exports.orderQuerySchema = zod_1.z.object({
     status: zod_1.z
-        .enum(["CHECKOUT", "PAID", "PENDING", "SHIPPED", "COMPLETED", "CANCELLED"])
+        .enum([
+        "CHECKOUT",
+        "PAID",
+        "PENDING",
+        "SHIPPED",
+        "COMPLETED",
+        "CANCELLED",
+        "WHATSAPP_PENDING",
+        "WHATSAPP_CONFIRMED",
+    ])
         .optional(),
     search: zod_1.z.string().optional(),
     page: zod_1.z.coerce.number().int().min(1, "Page must be at least 1").default(1),
@@ -235,8 +274,46 @@ exports.orderQuerySchema = zod_1.z.object({
         .default(10),
 });
 // ========================================
-// 🏠 ADDRESS VALIDATION SCHEMAS
+// 📱 WHATSAPP ORDER VALIDATION SCHEMAS
 // ========================================
+exports.createWhatsAppOrderSchema = zod_1.z.object({
+    items: zod_1.z
+        .array(zod_1.z.object({
+        productId: zod_1.z.string().uuid("Invalid product ID"),
+        quantity: zod_1.z
+            .number()
+            .int("Quantity must be an integer")
+            .positive("Quantity must be positive")
+            .min(1, "Quantity must be at least 1"),
+    }))
+        .min(1, "At least one item is required"),
+    shippingAddress: zod_1.z.object({
+        name: zod_1.z.string().min(2, "Name must be at least 2 characters"),
+        phone: zod_1.z.string().min(10, "Phone must be at least 10 characters"),
+        address: zod_1.z.string().min(10, "Address must be at least 10 characters"),
+        city: zod_1.z.string().min(2, "City must be at least 2 characters"),
+        postalCode: zod_1.z.string().min(5, "Postal code must be at least 5 characters"),
+    }),
+    whatsappPhoneNumber: zod_1.z
+        .string()
+        .min(10, "WhatsApp number must be at least 10 characters")
+        .regex(/^[0-9+\-\s()]+$/, "Invalid phone number format"),
+    notes: zod_1.z.string().max(500, "Notes cannot exceed 500 characters").optional(),
+});
+exports.updateWhatsAppOrderStatusSchema = zod_1.z.object({
+    status: zod_1.z.enum([
+        "WHATSAPP_PENDING",
+        "WHATSAPP_CONFIRMED",
+        "PENDING",
+        "SHIPPED",
+        "COMPLETED",
+        "CANCELLED",
+    ]),
+    adminNotes: zod_1.z
+        .string()
+        .max(500, "Admin notes cannot exceed 500 characters")
+        .optional(),
+});
 exports.createAddressSchema = zod_1.z.object({
     label: zod_1.z
         .string()

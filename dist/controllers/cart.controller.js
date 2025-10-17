@@ -41,11 +41,12 @@ class CartController {
                     .status(401)
                     .json({ success: false, message: "Unauthorized" });
             }
-            const { productId, quantity } = req.body;
+            const { productId, quantity, size } = req.body;
             const result = await (0, add_to_cart_service_1.addToCartService)({
                 userId,
                 productId,
                 quantity,
+                size,
             });
             res.json({
                 success: true,

@@ -23,6 +23,21 @@ export class DashboardRouter {
       validateQuery(dashboardQuerySchema),
       this.dashboardController.getDashboardStatsController
     );
+
+    // ✅ NEW: Cache management endpoints (Admin only)
+    this.router.post(
+      "/cache/invalidate",
+      requireAuth,
+      requireStaff,
+      this.dashboardController.invalidateCacheController
+    );
+
+    this.router.get(
+      "/cache/stats",
+      requireAuth,
+      requireStaff,
+      this.dashboardController.getCacheStatsController
+    );
   }
 
   public getRouter(): Router {

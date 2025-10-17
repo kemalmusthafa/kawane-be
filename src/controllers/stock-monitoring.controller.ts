@@ -1,104 +1,85 @@
 import { Request, Response } from "express";
+import { StockCronService } from "../services/inventory/stock-cron.service";
 import { StockMonitoringService } from "../services/inventory/stock-monitoring.service";
-import prisma from "../prisma";
 import {
   successResponse,
   errorResponse,
 } from "../middlewares/async-handler.middleware";
 
 export class StockMonitoringController {
-  // Manual trigger untuk monitor semua products
-  async monitorAllProductsController(req: Request, res: Response) {
+  /**
+   * Jalankan stock monitoring untuk semua produk
+   */
+  async runStockMonitoringController(req: Request, res: Response) {
     try {
-      const result = await StockMonitoringService.monitorAllProducts();
-      successResponse(res, result, "Stock monitoring completed");
-    } catch (error: any) {
-      errorResponse(res, error.message, 500);
-    }
-  }
-
-  // Get stock summary untuk dashboard
-  async getStockSummaryController(req: Request, res: Response) {
-    try {
-      const result = await StockMonitoringService.getStockSummary();
-      successResponse(res, result, "Stock summary retrieved");
-    } catch (error: any) {
-      errorResponse(res, error.message, 500);
-    }
-  }
-
-  // Get products dengan low stock
-  async getLowStockProductsController(req: Request, res: Response) {
-    try {
-      // Use validated query data if available, otherwise fallback to req.query
-      const queryData = (req as any).validatedQuery || req.query;
-      const { page = 1, limit = 10, status } = queryData;
-
-      const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
-
-      // Build where clause berdasarkan status
-      const where: any = {};
-
-      if (status === "low") {
-        where.stock = {
-          lte: 10,
-          gt: 5,
-        };
-      } else if (status === "critical") {
-        where.stock = {
-          lte: 5,
-          gt: 0,
-        };
-      } else if (status === "out_of_stock") {
-        where.stock = 0;
-      } else {
-        // Default: semua low stock (≤ 10)
-        where.stock = {
-          lte: 10,
-        };
-      }
-
-      const [products, total] = await Promise.all([
-        prisma.product.findMany({
-          where,
-          include: {
-            category: {
-              select: {
-                name: true,
-              },
-            },
-          },
-          orderBy: {
-            stock: "asc",
-          },
-          skip,
-          take: parseInt(limit as string),
-        }),
-        prisma.product.count({ where }),
-      ]);
-
-      // Add stock status to each product
-      const productsWithStatus = products.map((product) => ({
-        ...product,
-        stockStatus: StockMonitoringService.getStockStatus(product.stock),
-      }));
-
-      const totalPages = Math.ceil(total / parseInt(limit as string));
+      await StockCronService.manualTrigger();
 
       successResponse(
         res,
-        {
-          products: productsWithStatus,
-          pagination: {
-            page: parseInt(page as string),
-            limit: parseInt(limit as string),
-            total,
-            totalPages,
-            hasNextPage: parseInt(page as string) < totalPages,
-            hasPrevPage: parseInt(page as string) > 1,
-          },
-        },
-        "Low stock products retrieved"
+        { success: true },
+        "Stock monitoring completed successfully"
+      );
+    } catch (error: any) {
+      errorResponse(res, error.message, 500);
+    }
+  }
+
+  /**
+   * Jalankan stock monitoring untuk produk tertentu
+   */
+  async runSingleProductMonitoringController(req: Request, res: Response) {
+    try {
+      const { productId } = req.params;
+
+      if (!productId) {
+        return errorResponse(res, "Product ID is required", 400);
+      }
+
+      const result = await StockMonitoringService.monitorSingleProduct(
+        productId
+      );
+
+      successResponse(
+        res,
+        result,
+        "Single product monitoring completed successfully"
+      );
+    } catch (error: any) {
+      errorResponse(res, error.message, 500);
+    }
+  }
+
+  /**
+   * Get stock summary untuk dashboard
+   */
+  async getStockSummaryController(req: Request, res: Response) {
+    try {
+      const result = await StockMonitoringService.getStockSummary();
+
+      successResponse(res, result, "Stock summary retrieved successfully");
+    } catch (error: any) {
+      errorResponse(res, error.message, 500);
+    }
+  }
+
+  /**
+   * Get low stock products
+   */
+  async getLowStockProductsController(req: Request, res: Response) {
+    try {
+      const queryData = (req as any).validatedQuery || req.query;
+      const { page = 1, limit = 10 } = queryData;
+
+      // Get products with low stock
+      const products = await StockMonitoringService.getLowStockProducts({
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
+      });
+
+      successResponse(
+        res,
+        products,
+        "Low stock products retrieved successfully"
       );
     } catch (error: any) {
       errorResponse(res, error.message, 500);

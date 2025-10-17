@@ -1,4 +1,5 @@
 import prisma from "../../prisma";
+import { OrderStatus } from "@prisma/client";
 
 interface CreateShipmentData {
   orderId: string;
@@ -16,6 +17,7 @@ export const createShipmentService = async (data: CreateShipmentData) => {
       where: { id: data.orderId },
       include: {
         user: true,
+        payment: true, // ✅ FIXED: Include payment data
         items: {
           include: {
             product: true,
@@ -28,7 +30,25 @@ export const createShipmentService = async (data: CreateShipmentData) => {
       throw new Error("Order not found");
     }
 
-    if (order.status !== "PAID" && order.status !== "PENDING") {
+    console.log("🔍 createShipmentService order found:", {
+      id: order.id,
+      status: order.status,
+      paymentStatus: order.payment?.status,
+    });
+
+    // ✅ FIXED: More flexible order status validation using enum
+    const isReadyForShipment =
+      order.status === OrderStatus.PAID ||
+      order.status === OrderStatus.COMPLETED ||
+      (order.status === OrderStatus.PENDING &&
+        order.payment?.status === "SUCCEEDED");
+
+    if (!isReadyForShipment) {
+      console.log("❌ Order not ready for shipment:", {
+        orderId: order.id,
+        status: order.status,
+        paymentStatus: order.payment?.status,
+      });
       throw new Error("Order is not ready for shipment");
     }
 
@@ -77,7 +97,7 @@ export const createShipmentService = async (data: CreateShipmentData) => {
     // Update order status to SHIPPED
     await prisma.order.update({
       where: { id: data.orderId },
-      data: { status: "SHIPPED" },
+      data: { status: OrderStatus.SHIPPED },
     });
 
     // Create notification for customer

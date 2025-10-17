@@ -95,7 +95,11 @@ export class StockMonitoringService {
             userId: notif.userId,
             title: notif.title,
             description: notif.message,
+            type: notif.type,
+            priority: notif.data?.priority || "MEDIUM",
+            url: `/admin/inventory`,
             isRead: false,
+            data: JSON.stringify(notif.data),
           })),
         });
 
@@ -164,7 +168,11 @@ export class StockMonitoringService {
           title: "📦 Stock Update",
           message: `${product.name} stock level updated.`,
           type: "STOCK_ALERT" as const,
-          data: baseData,
+          data: {
+            ...baseData,
+            priority: "LOW",
+            action: "MONITOR",
+          },
         };
     }
   }
@@ -216,7 +224,11 @@ export class StockMonitoringService {
         userId: user.id,
         title: notificationData.title,
         description: notificationData.message,
+        type: notificationData.type,
+        priority: notificationData.data?.priority || "MEDIUM",
+        url: `/admin/inventory`,
         isRead: false,
+        data: JSON.stringify(notificationData.data),
       }));
 
       // Create notifications
@@ -282,6 +294,84 @@ export class StockMonitoringService {
     } catch (error) {
       console.error("❌ Stock summary failed:", error);
       throw new Error("Failed to get stock summary");
+    }
+  }
+
+  // Get low stock products dengan pagination
+  static async getLowStockProducts(params: { page: number; limit: number }) {
+    try {
+      const { page, limit } = params;
+      const offset = (page - 1) * limit;
+
+      // Get products with low stock
+      const products = await prisma.product.findMany({
+        where: {
+          stock: {
+            lte: STOCK_THRESHOLDS.LOW_STOCK,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          stock: true,
+          price: true,
+          createdAt: true,
+          updatedAt: true,
+          category: {
+            select: {
+              name: true,
+            },
+          },
+          images: {
+            select: {
+              url: true,
+            },
+            take: 1, // Ambil hanya gambar pertama
+          },
+        },
+        orderBy: {
+          stock: "asc", // Sort by stock level (lowest first)
+        },
+        take: limit,
+        skip: offset,
+      });
+
+      // Get total count
+      const totalCount = await prisma.product.count({
+        where: {
+          stock: {
+            lte: STOCK_THRESHOLDS.LOW_STOCK,
+          },
+        },
+      });
+
+      // Transform products dengan stock status
+      const transformedProducts = products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        stock: product.stock,
+        status: this.getStockStatus(product.stock),
+        category: product.category?.name || "Uncategorized",
+        price: product.price,
+        image: product.images[0]?.url || null, // Ambil URL gambar pertama atau null
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+      }));
+
+      return {
+        products: transformedProducts,
+        pagination: {
+          page,
+          limit,
+          totalItems: totalCount,
+          totalPages: Math.ceil(totalCount / limit),
+          hasNext: page < Math.ceil(totalCount / limit),
+          hasPrev: page > 1,
+        },
+      };
+    } catch (error) {
+      console.error("❌ Get low stock products failed:", error);
+      throw new Error("Failed to get low stock products");
     }
   }
 }

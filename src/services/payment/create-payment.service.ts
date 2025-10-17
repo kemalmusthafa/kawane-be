@@ -42,8 +42,6 @@ export const createPaymentService = async (data: CreatePaymentData) => {
       method: data.method,
       amount: data.amount,
       transactionId: data.transactionId,
-      snapToken: data.snapToken,
-      snapRedirectUrl: data.snapRedirectUrl,
       status: PaymentStatus.PENDING,
     },
     include: {

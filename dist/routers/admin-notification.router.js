@@ -39,6 +39,8 @@ class AdminNotificationRouter {
     initializeRoutes() {
         // Get all notifications for admin with search
         this.router.get("/", auth_middleware_1.requireAuth, auth_middleware_1.requireAdmin, (0, zod_validation_middleware_1.validateQuery)(adminNotificationQuerySchema), this.adminNotificationController.getAdminNotificationsController);
+        // Get unread count
+        this.router.get("/unread-count", auth_middleware_1.requireAuth, auth_middleware_1.requireAdmin, this.adminNotificationController.getUnreadCountController);
         // Send general notification
         this.router.post("/", auth_middleware_1.requireAuth, auth_middleware_1.requireAdmin, (0, zod_validation_middleware_1.validateBody)(sendGeneralNotificationSchema), this.adminNotificationController.sendGeneralNotificationController);
         // Mark notification as read

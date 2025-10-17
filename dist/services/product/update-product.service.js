@@ -44,6 +44,8 @@ const updateProductService = async (data) => {
         updateData.stock = data.stock;
     if (data.categoryId !== undefined)
         updateData.categoryId = data.categoryId;
+    if (data.size !== undefined)
+        updateData.size = data.size;
     const updatedProduct = await prisma_1.default.product.update({
         where: { id: data.id },
         data: updateData,

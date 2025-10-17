@@ -115,6 +115,13 @@ const getCartService = async (data) => {
             },
         });
     }
+    // Debug: Log cart items to see if size is included
+    console.log("🛒 Cart items with deals:", cartItemsWithDeals.map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        size: item.size,
+        quantity: item.quantity,
+    })));
     return {
         cart: {
             ...cart,
