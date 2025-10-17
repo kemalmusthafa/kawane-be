@@ -1,16 +1,43 @@
 import { Request, Response } from "express";
-import { dashboardCacheService } from "../services/cache/dashboard-cache.service";
 import {
   successResponse,
   errorResponse,
 } from "../middlewares/async-handler.middleware";
+
+// ✅ FALLBACK: Import with error handling for Vercel deployment
+let dashboardCacheService: any;
+try {
+  dashboardCacheService =
+    require("../services/cache/dashboard-cache.service").dashboardCacheService;
+} catch (error) {
+  console.warn("Dashboard cache service not available, using fallback");
+  // Fallback implementation
+  dashboardCacheService = {
+    getDashboardStats: async (params: any) => {
+      const { getDashboardStatsService } = await import(
+        "../services/dashboard/get-dashboard-stats.service"
+      );
+      return await getDashboardStatsService(params);
+    },
+    invalidateCache: () => {
+      console.log("Cache invalidation not available");
+    },
+    getCacheStats: () => ({
+      enabled: false,
+      ttl: 0,
+      maxSize: 0,
+      currentSize: 0,
+      keys: [],
+    }),
+  };
+}
 
 export class DashboardController {
   async getDashboardStatsController(req: Request, res: Response) {
     try {
       const { startDate, endDate } = req.query;
 
-      // ✅ OPTIMIZED: Use cached dashboard stats
+      // ✅ OPTIMIZED: Use cached dashboard stats with fallback
       const stats = await dashboardCacheService.getDashboardStats({
         startDate: startDate ? new Date(startDate as string) : undefined,
         endDate: endDate ? new Date(endDate as string) : undefined,
