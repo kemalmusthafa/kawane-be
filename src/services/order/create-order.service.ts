@@ -73,6 +73,9 @@ export const createOrderService = async (data: CreateOrderData) => {
     where: {
       id: { in: data.items.map((item) => item.productId) },
     },
+    include: {
+      sizes: true, // Include product sizes for size-specific stock validation
+    },
   });
 
   if (products.length !== data.items.length) {
@@ -103,11 +106,28 @@ export const createOrderService = async (data: CreateOrderData) => {
     const product = products.find((p) => p.id === item.productId)!;
     const priceInfo = priceMap.get(item.productId);
 
-    // 🔍 Enhanced stock validation
-    if (product.stock < item.quantity) {
-      throw new Error(
-        `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`
-      );
+    // 🔍 Enhanced stock validation - check size-specific stock if size is provided
+    if (item.size) {
+      // Check if product has sizes and find the specific size
+      const productSize = product.sizes?.find((s) => s.size === item.size);
+      if (!productSize) {
+        throw new Error(
+          `Size "${item.size}" not available for ${product.name}`
+        );
+      }
+
+      if (productSize.stock < item.quantity) {
+        throw new Error(
+          `Insufficient stock for ${product.name} size ${item.size}. Available: ${productSize.stock}, Requested: ${item.quantity}`
+        );
+      }
+    } else {
+      // Check general stock if no size specified
+      if (product.stock < item.quantity) {
+        throw new Error(
+          `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`
+        );
+      }
     }
 
     if (item.quantity <= 0) {
@@ -181,6 +201,20 @@ export const createOrderService = async (data: CreateOrderData) => {
     });
 
     for (const item of data.items) {
+      // Decrement size-specific stock if size is provided
+      if (item.size) {
+        await tx.productSize.updateMany({
+          where: {
+            productId: item.productId,
+            size: item.size,
+          },
+          data: {
+            stock: { decrement: item.quantity },
+          },
+        });
+      }
+
+      // Always decrement general product stock
       await tx.product.update({
         where: { id: item.productId },
         data: { stock: { decrement: item.quantity } },
@@ -190,7 +224,9 @@ export const createOrderService = async (data: CreateOrderData) => {
         data: {
           productId: item.productId,
           change: -item.quantity,
-          note: `Order ${newOrder.id}: Sale`,
+          note: `Order ${newOrder.id}: Sale${
+            item.size ? ` (Size: ${item.size})` : ""
+          }`,
         },
       });
     }

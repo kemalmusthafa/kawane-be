@@ -26,6 +26,9 @@ const createWhatsAppOrderService = async (data) => {
             where: {
                 id: { in: data.items.map((item) => item.productId) },
             },
+            include: {
+                sizes: true, // Include product sizes for size-specific stock validation
+            },
         });
         if (products.length !== data.items.length) {
             throw new Error("Some products not found");
@@ -35,8 +38,22 @@ const createWhatsAppOrderService = async (data) => {
         const orderItems = [];
         for (const item of data.items) {
             const product = products.find((p) => p.id === item.productId);
-            if (product.stock < item.quantity) {
-                throw new Error(`Insufficient stock for ${product.name}`);
+            // 🔍 Enhanced stock validation - check size-specific stock if size is provided
+            if (item.size) {
+                // Check if product has sizes and find the specific size
+                const productSize = product.sizes?.find((s) => s.size === item.size);
+                if (!productSize) {
+                    throw new Error(`Size "${item.size}" not available for ${product.name}`);
+                }
+                if (productSize.stock < item.quantity) {
+                    throw new Error(`Insufficient stock for ${product.name} size ${item.size}. Available: ${productSize.stock}, Requested: ${item.quantity}`);
+                }
+            }
+            else {
+                // Check general stock if no size specified
+                if (product.stock < item.quantity) {
+                    throw new Error(`Insufficient stock for ${product.name}`);
+                }
             }
             const itemTotal = product.price * item.quantity;
             totalAmount += itemTotal;
@@ -78,6 +95,19 @@ const createWhatsAppOrderService = async (data) => {
             });
             // Decrement stock
             for (const item of data.items) {
+                // Decrement size-specific stock if size is provided
+                if (item.size) {
+                    await tx.productSize.updateMany({
+                        where: {
+                            productId: item.productId,
+                            size: item.size,
+                        },
+                        data: {
+                            stock: { decrement: item.quantity },
+                        },
+                    });
+                }
+                // Always decrement general product stock
                 await tx.product.update({
                     where: { id: item.productId },
                     data: { stock: { decrement: item.quantity } },
@@ -86,7 +116,7 @@ const createWhatsAppOrderService = async (data) => {
                     data: {
                         productId: item.productId,
                         change: -item.quantity,
-                        note: `WhatsApp Order ${newOrder.id}: Sale`,
+                        note: `WhatsApp Order ${newOrder.id}: Sale${item.size ? ` (Size: ${item.size})` : ""}`,
                     },
                 });
             }

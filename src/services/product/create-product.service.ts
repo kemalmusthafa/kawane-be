@@ -17,7 +17,8 @@ type CreateProductInput = {
 };
 
 export const createProductService = async (input: CreateProductInput) => {
-  const { name, description, price, sku, stock, categoryId, sizes, images } = input;
+  const { name, description, price, sku, stock, categoryId, sizes, images } =
+    input;
 
   // Business logic validation
   if (sku) {
@@ -35,9 +36,10 @@ export const createProductService = async (input: CreateProductInput) => {
   }
 
   // Calculate total stock from sizes if provided
-  const totalStock = sizes && sizes.length > 0 
-    ? sizes.reduce((sum, size) => sum + size.stock, 0)
-    : stock;
+  const totalStock =
+    sizes && sizes.length > 0
+      ? sizes.reduce((sum, size) => sum + size.stock, 0)
+      : stock;
 
   // Create product
   const product = await prisma.$transaction(async (tx) => {
