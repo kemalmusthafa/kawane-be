@@ -49,6 +49,20 @@ exports.appConfig = {
     RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000"), // 15 minutes
     RATE_LIMIT_MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "100"),
     RATE_LIMIT_AUTH_MAX: parseInt(process.env.RATE_LIMIT_AUTH_MAX || "10"), // 10 login attempts per window
+    // Email Rate Limiting Configuration
+    EMAIL_RATE_LIMIT_WINDOW_MS: parseInt(process.env.EMAIL_RATE_LIMIT_WINDOW_MS || "86400000"), // 24 hours (1 day)
+    EMAIL_RATE_LIMIT_MAX_REQUESTS: parseInt(process.env.EMAIL_RATE_LIMIT_MAX_REQUESTS || "10"), // 10 emails per day
+    EMAIL_RATE_LIMIT_WINDOW_MS_HOURLY: parseInt(process.env.EMAIL_RATE_LIMIT_WINDOW_MS_HOURLY || "3600000"), // 1 hour
+    EMAIL_RATE_LIMIT_MAX_REQUESTS_HOURLY: parseInt(process.env.EMAIL_RATE_LIMIT_MAX_REQUESTS_HOURLY || "5"), // 5 emails per hour
+    // Auth Rate Limiting Configuration
+    AUTH_RATE_LIMIT_WINDOW_MS: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS || "900000"), // 15 minutes
+    AUTH_RATE_LIMIT_MAX_REQUESTS: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS || "20"), // 20 auth attempts per window
+    // API Rate Limiting Configuration
+    API_RATE_LIMIT_WINDOW_MS: parseInt(process.env.API_RATE_LIMIT_WINDOW_MS || "900000"), // 15 minutes
+    API_RATE_LIMIT_MAX_REQUESTS: parseInt(process.env.API_RATE_LIMIT_MAX_REQUESTS || "200"), // 200 API calls per window
+    // Search Rate Limiting Configuration
+    SEARCH_RATE_LIMIT_WINDOW_MS: parseInt(process.env.SEARCH_RATE_LIMIT_WINDOW_MS || "60000"), // 1 minute
+    SEARCH_RATE_LIMIT_MAX_REQUESTS: parseInt(process.env.SEARCH_RATE_LIMIT_MAX_REQUESTS || "30"), // 30 searches per minute
 };
 // Validate critical configs
 if (exports.appConfig.JWT_SECRET.length < 32) {

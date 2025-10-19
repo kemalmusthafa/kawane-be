@@ -77,11 +77,11 @@ export const generalRateLimit = rateLimit({
  * Strict rate limiting untuk authentication endpoints
  */
 export const authRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: appConfig.AUTH_RATE_LIMIT_WINDOW_MS, // 15 minutes (configurable)
   max:
     appConfig.NODE_ENV === "development"
       ? 10000
-      : appConfig.RATE_LIMIT_AUTH_MAX, // Very high limit in development
+      : appConfig.AUTH_RATE_LIMIT_MAX_REQUESTS, // Configurable max requests
   message: rateLimitMessage,
   keyGenerator,
   standardHeaders: true,
@@ -122,8 +122,11 @@ export const strictRateLimit = rateLimit({
  * Moderate rate limiting untuk API endpoints
  */
 export const apiRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: appConfig.NODE_ENV === "development" ? 10000 : 200, // Very high limit in development
+  windowMs: appConfig.API_RATE_LIMIT_WINDOW_MS, // 15 minutes (configurable)
+  max:
+    appConfig.NODE_ENV === "development"
+      ? 10000
+      : appConfig.API_RATE_LIMIT_MAX_REQUESTS, // Configurable max requests
   message: rateLimitMessage,
   keyGenerator,
   standardHeaders: true,
@@ -141,8 +144,11 @@ export const apiRateLimit = rateLimit({
  * Rate limiting untuk search endpoints
  */
 export const searchRateLimit = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: appConfig.NODE_ENV === "development" ? 1000 : 30, // Very high limit in development
+  windowMs: appConfig.SEARCH_RATE_LIMIT_WINDOW_MS, // 1 minute (configurable)
+  max:
+    appConfig.NODE_ENV === "development"
+      ? 1000
+      : appConfig.SEARCH_RATE_LIMIT_MAX_REQUESTS, // Configurable max requests
   message: rateLimitMessage,
   keyGenerator,
   standardHeaders: true,
@@ -208,11 +214,32 @@ export const paymentRateLimit = rateLimit({
 // ========================================
 
 /**
- * Rate limiting untuk email sending (verification, reset password)
+ * Rate limiting untuk email sending (verification, reset password) - Daily Limit
  */
 export const emailRateLimit = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // 3 emails per hour
+  windowMs: appConfig.EMAIL_RATE_LIMIT_WINDOW_MS, // 24 hours (configurable)
+  max:
+    appConfig.NODE_ENV === "development"
+      ? 100
+      : appConfig.EMAIL_RATE_LIMIT_MAX_REQUESTS, // Configurable max requests per day
+  message: rateLimitMessage,
+  keyGenerator,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: rateLimitMessage,
+  // Skip rate limiting in development
+  skip: (req) => appConfig.NODE_ENV === "development",
+});
+
+/**
+ * Rate limiting untuk email sending - Hourly Limit (additional protection)
+ */
+export const emailRateLimitHourly = rateLimit({
+  windowMs: appConfig.EMAIL_RATE_LIMIT_WINDOW_MS_HOURLY, // 1 hour (configurable)
+  max:
+    appConfig.NODE_ENV === "development"
+      ? 100
+      : appConfig.EMAIL_RATE_LIMIT_MAX_REQUESTS_HOURLY, // Configurable max requests per hour
   message: rateLimitMessage,
   keyGenerator,
   standardHeaders: true,

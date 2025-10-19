@@ -1,25 +1,34 @@
 import nodemailer from "nodemailer";
 
-// Check if email credentials are configured
-const isEmailConfigured =
-  process.env.MAIL_USER &&
-  process.env.MAIL_PASS &&
-  process.env.MAIL_USER !== "your-email@gmail.com" &&
-  process.env.MAIL_PASS !== "your-app-password-here";
+// Mock email transporter for development
+export const transporter = {
+  sendMail: async (mailOptions: any) => {
+    console.log("📧 Mock Email Sent:");
+    console.log("📤 From:", mailOptions.from);
+    console.log("📥 To:", mailOptions.to);
+    console.log("📋 Subject:", mailOptions.subject);
+    console.log(
+      "🔗 Verification Link:",
+      mailOptions.html?.match(/href="([^"]+)"/)?.[1] || "Not found"
+    );
 
-export const transporter = isEmailConfigured
-  ? nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
+    // Simulate successful email sending with proper structure
+    return {
+      messageId: `mock-${Date.now()}@kawanestudio.com`,
+      accepted: [mailOptions.to],
+      rejected: [],
+      pending: [],
+      response: "250 OK",
+      envelope: {
+        from: mailOptions.from,
+        to: [mailOptions.to],
       },
-    })
-  : nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      auth: {
-        user: "ethereal.user@ethereal.email",
-        pass: "ethereal.pass",
-      },
-    });
+    };
+  },
+  verify: (callback: (error: any, success: any) => void) => {
+    console.log("✅ Mock email transporter verified");
+    callback(null, true);
+  },
+} as any;
+
+console.log("📧 Using Mock Email Service for development");

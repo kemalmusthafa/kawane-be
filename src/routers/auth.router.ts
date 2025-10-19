@@ -8,6 +8,7 @@ import {
 import {
   authRateLimit,
   emailRateLimit,
+  emailRateLimitHourly,
 } from "../middlewares/rate-limit.middleware";
 import {
   registerSchema,
@@ -47,18 +48,20 @@ export class AuthRouter {
     // Verify Email - validate query dengan token
     this.router.get("/verify", this.authController.verifyEmailController);
 
-    // Forgot Password - validate body dengan forgotPasswordSchema + email rate limiting
+    // Forgot Password - validate body dengan forgotPasswordSchema + email rate limiting (daily + hourly)
     this.router.post(
       "/forgot-password",
-      emailRateLimit,
+      emailRateLimitHourly, // Apply hourly limit first
+      emailRateLimit, // Then apply daily limit
       validateBody(forgotPasswordSchema),
       this.authController.forgotPasswordController
     );
 
-    // Reset Password - validate body dengan resetPasswordSchema + email rate limiting
+    // Reset Password - validate body dengan resetPasswordSchema + email rate limiting (daily + hourly)
     this.router.post(
       "/reset-password",
-      emailRateLimit,
+      emailRateLimitHourly, // Apply hourly limit first
+      emailRateLimit, // Then apply daily limit
       validateBody(resetPasswordSchema),
       this.authController.resetPasswordController
     );

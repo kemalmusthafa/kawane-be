@@ -20,10 +20,14 @@ class AuthRouter {
         this.router.post("/login", rate_limit_middleware_1.authRateLimit, (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.loginSchema), this.authController.loginController);
         // Verify Email - validate query dengan token
         this.router.get("/verify", this.authController.verifyEmailController);
-        // Forgot Password - validate body dengan forgotPasswordSchema + email rate limiting
-        this.router.post("/forgot-password", rate_limit_middleware_1.emailRateLimit, (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.forgotPasswordSchema), this.authController.forgotPasswordController);
-        // Reset Password - validate body dengan resetPasswordSchema + email rate limiting
-        this.router.post("/reset-password", rate_limit_middleware_1.emailRateLimit, (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.resetPasswordSchema), this.authController.resetPasswordController);
+        // Forgot Password - validate body dengan forgotPasswordSchema + email rate limiting (daily + hourly)
+        this.router.post("/forgot-password", rate_limit_middleware_1.emailRateLimitHourly, // Apply hourly limit first
+        rate_limit_middleware_1.emailRateLimit, // Then apply daily limit
+        (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.forgotPasswordSchema), this.authController.forgotPasswordController);
+        // Reset Password - validate body dengan resetPasswordSchema + email rate limiting (daily + hourly)
+        this.router.post("/reset-password", rate_limit_middleware_1.emailRateLimitHourly, // Apply hourly limit first
+        rate_limit_middleware_1.emailRateLimit, // Then apply daily limit
+        (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.resetPasswordSchema), this.authController.resetPasswordController);
         // Google Token - validate body dengan googleTokenSchema + auth rate limiting
         this.router.post("/google-token", rate_limit_middleware_1.authRateLimit, (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.googleTokenSchema), this.authController.googleTokenController);
         // Get Session - dengan authentication middleware

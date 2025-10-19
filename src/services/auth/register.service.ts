@@ -50,39 +50,76 @@ export const registerService = async (input: RegisterInput) => {
 
   // ✅ Send verification email jika register dengan password
   if (password) {
-    const payload = { id: newUser.id };
-    // Fix type issue dengan type assertion
-    const token = sign(payload, appConfig.JWT_SECRET as string, {
-      expiresIn: "60m",
-    });
-    const verificationLink = `${process.env.BASE_URL_FE}/verify/${token}`;
+    try {
+      const payload = { id: newUser.id };
+      // Fix type issue dengan type assertion
+      const token = sign(payload, appConfig.JWT_SECRET as string, {
+        expiresIn: "60m",
+      });
 
-    const templatePath = path.resolve(
-      __dirname,
-      "../../templates",
-      "verif-email.hbs"
-    );
-    const templateSource = fs.readFileSync(templatePath, "utf-8");
-    const compiledTemplate = Handlebars.compile(templateSource);
-    const emailHtml = compiledTemplate({ email, verificationLink });
+      // Use production URL if available, otherwise fallback to localhost
+      const baseUrl = process.env.BASE_URL_FE || "http://localhost:3000";
+      const verificationLink = `${baseUrl}/verify/${token}`;
 
-    await transporter.sendMail({
-      from: "Admin <no-reply@kawane.com>",
-      to: email,
-      subject:
-        "Welcome to Kawane Studio. Please verify your email to complete registration",
-      html: emailHtml,
-    });
+      console.log("📧 Sending verification email to:", email);
+      console.log("🔗 Verification link:", verificationLink);
 
-    return {
-      message: "Verification email sent successfully",
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        isVerified: newUser.isVerified,
-      },
-    };
+      const templatePath = path.resolve(
+        __dirname,
+        "../../templates",
+        "verif-email.hbs"
+      );
+
+      console.log("📁 Template path:", templatePath);
+
+      const templateSource = fs.readFileSync(templatePath, "utf-8");
+      const compiledTemplate = Handlebars.compile(templateSource);
+      const emailHtml = compiledTemplate({ email, verificationLink });
+
+      const mailOptions = {
+        from: "Kawane Studio <noreply@kawanestudio.com>",
+        to: email,
+        subject: "Welcome to Kawane Studio - Please verify your email",
+        html: emailHtml,
+      };
+
+      console.log("📤 Sending email with options:", {
+        from: mailOptions.from,
+        to: mailOptions.to,
+        subject: mailOptions.subject,
+      });
+
+      const result = await transporter.sendMail(mailOptions);
+      console.log("✅ Email sent successfully:", result.messageId);
+
+      return {
+        message: "Verification email sent successfully",
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          isVerified: newUser.isVerified,
+        },
+      };
+    } catch (emailError) {
+      console.error("❌ Email sending failed:", emailError);
+
+      // Don't fail the registration if email fails, just log the error
+      return {
+        message:
+          "User registered successfully, but verification email failed to send",
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          isVerified: newUser.isVerified,
+        },
+        emailError:
+          emailError instanceof Error
+            ? emailError.message
+            : "Unknown email error",
+      };
+    }
   }
 
   return {
