@@ -129,7 +129,9 @@ exports.strictRateLimit = (0, express_rate_limit_1.default)({
  */
 exports.apiRateLimit = (0, express_rate_limit_1.default)({
     windowMs: config_1.appConfig.API_RATE_LIMIT_WINDOW_MS, // 15 minutes (configurable)
-    max: config_1.appConfig.NODE_ENV === "development" ? 10000 : config_1.appConfig.API_RATE_LIMIT_MAX_REQUESTS, // Configurable max requests
+    max: config_1.appConfig.NODE_ENV === "development"
+        ? 10000
+        : config_1.appConfig.API_RATE_LIMIT_MAX_REQUESTS, // Configurable max requests
     message: rateLimitMessage,
     keyGenerator,
     standardHeaders: true,
@@ -146,7 +148,9 @@ exports.apiRateLimit = (0, express_rate_limit_1.default)({
  */
 exports.searchRateLimit = (0, express_rate_limit_1.default)({
     windowMs: config_1.appConfig.SEARCH_RATE_LIMIT_WINDOW_MS, // 1 minute (configurable)
-    max: config_1.appConfig.NODE_ENV === "development" ? 1000 : config_1.appConfig.SEARCH_RATE_LIMIT_MAX_REQUESTS, // Configurable max requests
+    max: config_1.appConfig.NODE_ENV === "development"
+        ? 1000
+        : config_1.appConfig.SEARCH_RATE_LIMIT_MAX_REQUESTS, // Configurable max requests
     message: rateLimitMessage,
     keyGenerator,
     standardHeaders: true,
@@ -208,7 +212,9 @@ exports.paymentRateLimit = (0, express_rate_limit_1.default)({
  */
 exports.emailRateLimit = (0, express_rate_limit_1.default)({
     windowMs: config_1.appConfig.EMAIL_RATE_LIMIT_WINDOW_MS, // 24 hours (configurable)
-    max: config_1.appConfig.NODE_ENV === "development" ? 100 : config_1.appConfig.EMAIL_RATE_LIMIT_MAX_REQUESTS, // Configurable max requests per day
+    max: config_1.appConfig.NODE_ENV === "development"
+        ? 100
+        : config_1.appConfig.EMAIL_RATE_LIMIT_MAX_REQUESTS, // Configurable max requests per day
     message: rateLimitMessage,
     keyGenerator,
     standardHeaders: true,
@@ -222,7 +228,9 @@ exports.emailRateLimit = (0, express_rate_limit_1.default)({
  */
 exports.emailRateLimitHourly = (0, express_rate_limit_1.default)({
     windowMs: config_1.appConfig.EMAIL_RATE_LIMIT_WINDOW_MS_HOURLY, // 1 hour (configurable)
-    max: config_1.appConfig.NODE_ENV === "development" ? 100 : config_1.appConfig.EMAIL_RATE_LIMIT_MAX_REQUESTS_HOURLY, // Configurable max requests per hour
+    max: config_1.appConfig.NODE_ENV === "development"
+        ? 100
+        : config_1.appConfig.EMAIL_RATE_LIMIT_MAX_REQUESTS_HOURLY, // Configurable max requests per hour
     message: rateLimitMessage,
     keyGenerator,
     standardHeaders: true,

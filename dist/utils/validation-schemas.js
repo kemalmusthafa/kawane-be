@@ -21,7 +21,7 @@ exports.registerSchema = zod_1.z.object({
         .string()
         .min(8, "Password must be at least 8 characters")
         .max(100, "Password too long")
-        .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain at least one lowercase letter, one uppercase letter, and one number"),
+        .regex(/^(?=.*[a-z])(?=.*\d)/, "Password must contain at least one lowercase letter and one number"),
 });
 exports.loginSchema = zod_1.z.object({
     email: zod_1.z.string().email("Invalid email format"),
