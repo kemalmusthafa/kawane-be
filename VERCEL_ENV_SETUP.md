@@ -1,6 +1,7 @@
 # Vercel Environment Variables Setup Guide
 
 ## 🔧 Masalah yang Ditemukan:
+
 - Backend tidak bisa connect ke database Supabase
 - Error: "Can't reach database server at aws-1-us-east-1.pooler.supabase.com:6543"
 - Environment variables tidak ter-set dengan benar di Vercel
@@ -10,12 +11,15 @@
 ### 1. Set Environment Variables di Vercel Dashboard
 
 **Langkah-langkah:**
+
 1. **Masuk ke Vercel Dashboard**
+
    - Go to https://vercel.com/dashboard
    - Select project "kawane-be"
    - Go to Settings → Environment Variables
 
 2. **Add Environment Variables:**
+
 ```
 DATABASE_URL = postgresql://postgres.zbmfgymryfvhhkitbemm:KawaneStudio@80@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true
 DIRECT_URL = postgresql://postgres.zbmfgymryfvhhkitbemm:KawaneStudio@80@aws-1-us-east-1.pooler.supabase.com:5432/postgres
@@ -44,6 +48,7 @@ NODE_ENV = production
 ### 2. Redeploy Application
 
 **Langkah-langkah:**
+
 1. **Go to Deployments tab**
 2. **Click "Redeploy" on latest deployment**
 3. **Or push new commit to trigger deployment**
@@ -51,6 +56,7 @@ NODE_ENV = production
 ### 3. Verify Database Connection
 
 **Test API endpoints:**
+
 - `https://kawane-be.vercel.app/api/categories`
 - `https://kawane-be.vercel.app/api/auth/login`
 - `https://kawane-be.vercel.app/api/products`
@@ -58,12 +64,15 @@ NODE_ENV = production
 ## 🔍 Troubleshooting:
 
 ### Jika Masih Error:
+
 1. **Check Supabase Database Status**
+
    - Go to Supabase Dashboard
    - Check if database is running
    - Verify connection string
 
 2. **Check Vercel Logs**
+
    - Go to Vercel Dashboard → Functions
    - Check function logs for errors
 
@@ -74,6 +83,7 @@ NODE_ENV = production
 ## 📊 Expected Result:
 
 Setelah setup environment variables:
+
 - ✅ Database connection berhasil
 - ✅ API endpoints berfungsi normal
 - ✅ Categories, products, auth endpoints working
