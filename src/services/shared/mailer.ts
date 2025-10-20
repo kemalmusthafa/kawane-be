@@ -62,7 +62,7 @@ export const transporter = realTransporter || mockTransporter;
 if (realTransporter) {
   console.log("📧 Using Real Email Service (Gmail SMTP)");
   console.log("📤 Email User:", appConfig.MAIL_USER);
-  
+
   // Verify connection
   realTransporter.verify((error: any, success: any) => {
     if (error) {
