@@ -1,0 +1,385 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+generator seed {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  directUrl    = env("DIRECT_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  password       String?
+  name           String
+  phone          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  avatar         String         @default("https://res.cloudinary.com/dkpn9aqne/image/upload/v1759202380/blank-profile-picture-973460_1920_vyiidf.png")
+  deletedAt      DateTime?
+  isDeleted      Boolean        @default(false)
+  isVerified     Boolean        @default(false)
+  token          String?
+  tokenExpiresIn DateTime?
+  role           Role           @default(CUSTOMER)
+  addresses      Address[]
+  cart           Cart?
+  notifications  Notification[]
+  orders         Order[]
+  reviews        Review[]
+  wishlist       Wishlist[]
+}
+
+model Address {
+  id         String     @id @default(uuid())
+  userId     String
+  label      String?
+  detail     String
+  city       String
+  province   String
+  postalCode String?
+  latitude   Float?
+  longitude  Float?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  isDefault  Boolean    @default(false)
+  user       User       @relation(fields: [userId], references: [id])
+  orders     Order[]
+  shipments  Shipment[]
+}
+
+model Product {
+  id            String         @id @default(uuid())
+  name          String
+  sku           String?        @unique
+  description   String?
+  price         Float
+  stock         Int            @default(0)
+  categoryId    String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  status        ProductStatus  @default(ACTIVE)
+  cartItems     CartItem[]
+  dealProducts  DealProduct[]
+  inventoryLogs InventoryLog[]
+  orderItems    OrderItem[]
+  category      Category?      @relation(fields: [categoryId], references: [id])
+  images        ProductImage[]
+  reviews       Review[]
+  wishlist      Wishlist[]
+  sizes         ProductSize[]
+}
+
+model ProductImage {
+  id        String  @id @default(uuid())
+  url       String
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model ProductSize {
+  id        String   @id @default(uuid())
+  size      String
+  stock     Int      @default(0)
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, size])
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  createdAt   DateTime  @default(now())
+  description String?
+  image       String?
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Deal {
+  id           String        @id @default(uuid())
+  title        String
+  description  String?
+  type         DealType
+  value        Float
+  status       DealStatus    @default(ACTIVE)
+  startDate    DateTime
+  endDate      DateTime
+  image        String?
+  isFlashSale  Boolean       @default(false)
+  maxUses      Int?
+  usedCount    Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  images       DealImage[]
+  dealProducts DealProduct[]
+  orderItems   OrderItem[]
+}
+
+model DealImage {
+  id        String   @id @default(uuid())
+  url       String
+  dealId    String
+  createdAt DateTime @default(now())
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+}
+
+model DealProduct {
+  id        String   @id @default(uuid())
+  dealId    String
+  productId String
+  createdAt DateTime @default(now())
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([dealId, productId])
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  productId String
+  quantity  Int
+  size      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId, size])
+}
+
+model Order {
+  id                  String      @id @default(uuid())
+  userId              String
+  status              OrderStatus @default(PENDING)
+  totalAmount         Float
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  addressId           String?
+  isPaid              Boolean     @default(false)
+  adminNotes          String?
+  isWhatsAppOrder     Boolean     @default(false)
+  whatsappMessage     String?
+  whatsappOrderId     String?     @unique
+  whatsappPhoneNumber String?
+  address             Address?    @relation(fields: [addressId], references: [id])
+  user                User        @relation(fields: [userId], references: [id])
+  items               OrderItem[]
+  payment             Payment?
+  shipment            Shipment?
+}
+
+model OrderItem {
+  id                 String  @id @default(uuid())
+  orderId            String
+  productId          String
+  quantity           Int
+  price              Float
+  size               String?
+  dealId             String?
+  dealTitle          String?
+  discountAmount     Float   @default(0)
+  discountPercentage Float   @default(0)
+  originalPrice      Float?
+  deal               Deal?   @relation(fields: [dealId], references: [id])
+  order              Order   @relation(fields: [orderId], references: [id])
+  product            Product @relation(fields: [productId], references: [id])
+}
+
+model Payment {
+  id                  String        @id @default(uuid())
+  orderId             String        @unique
+  status              PaymentStatus @default(PENDING)
+  amount              Float
+  createdAt           DateTime      @default(now())
+  transactionId       String?
+  updatedAt           DateTime      @updatedAt
+  method              PaymentMethod
+  adminConfirmed      Boolean       @default(false)
+  paymentProof        String?
+  whatsappMessageId   String?
+  whatsappPhoneNumber String?
+  order               Order         @relation(fields: [orderId], references: [id])
+}
+
+model Shipment {
+  id            String   @id @default(uuid())
+  orderId       String   @unique
+  courier       String?
+  trackingNo    String?
+  cost          Float    @default(0)
+  estimatedDays Int?
+  addressId     String?
+  createdAt     DateTime @default(now())
+  address       Address? @relation(fields: [addressId], references: [id])
+  order         Order    @relation(fields: [orderId], references: [id])
+}
+
+model Notification {
+  id          String    @id @default(uuid())
+  userId      String
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+  description String
+  isDeleted   Boolean   @default(false)
+  title       String
+  updatedAt   DateTime  @updatedAt
+  url         String?
+  data        String?
+  message     String?
+  priority    String?   @default("MEDIUM")
+  type        String?   @default("INFO")
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Discount {
+  id          String    @id @default(uuid())
+  code        String    @unique
+  description String?
+  percentage  Float?
+  amount      Float?
+  validFrom   DateTime?
+  validTo     DateTime?
+  usageLimit  Int?
+  usedCount   Int       @default(0)
+  createdAt   DateTime  @default(now())
+}
+
+model InventoryLog {
+  id        String   @id @default(uuid())
+  productId String
+  change    Int
+  createdAt DateTime @default(now())
+  note      String?
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Report {
+  id        String       @id @default(uuid())
+  name      String
+  type      ReportType
+  period    String
+  status    ReportStatus @default(GENERATING)
+  createdAt DateTime     @default(now())
+  size      String
+  format    ReportFormat @default(PDF)
+}
+
+model LookbookPhoto {
+  id          String   @id @default(uuid())
+  title       String?
+  description String?
+  imageUrl    String
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum OrderStatus {
+  CHECKOUT
+  PAID
+  PENDING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+  WHATSAPP_PENDING
+  WHATSAPP_CONFIRMED
+}
+
+enum PaymentStatus {
+  PENDING
+  CANCELLED
+  EXPIRED
+  SUCCEEDED
+}
+
+enum PaymentMethod {
+  WHATSAPP_MANUAL
+  BANK_TRANSFER
+  CASH_ON_DELIVERY
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  OUT_OF_STOCK
+}
+
+enum DealStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+enum DealType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FLASH_SALE
+}
+
+enum ReportType {
+  SALES
+  INVENTORY
+  CUSTOMER
+  PRODUCT
+}
+
+enum ReportStatus {
+  GENERATING
+  GENERATED
+  FAILED
+}
+
+enum ReportFormat {
+  PDF
+  EXCEL
+  CSV
+}
