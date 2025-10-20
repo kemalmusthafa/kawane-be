@@ -97,12 +97,12 @@ model ProductSize {
 }
 
 model Category {
-  id          String       @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
-  createdAt   DateTime     @default(now())
+  createdAt   DateTime  @default(now())
   description String?
   image       String?
-  updatedAt   DateTime     @updatedAt
+  updatedAt   DateTime  @updatedAt
   products    Product[]
 }
 
@@ -383,4 +383,3 @@ enum ReportFormat {
   EXCEL
   CSV
 }
-
