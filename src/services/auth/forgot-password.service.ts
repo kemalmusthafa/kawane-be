@@ -61,11 +61,11 @@ export const forgotPasswordService = async (input: ForgotPasswordInput) => {
     });
 
     console.log("Email sent successfully:", info.messageId);
-    console.log("Preview URL:", nodemailer.getTestMessageUrl(info));
+    console.log("Preview URL:", nodemailer.getTestMessageUrl(info as any));
 
     return {
       message: "Password reset email sent successfully",
-      previewUrl: nodemailer.getTestMessageUrl(info), // For development testing
+      previewUrl: nodemailer.getTestMessageUrl(info as any), // For development testing
       resetLink: resetLink, // Always include reset link for development
     };
   } catch (error) {
