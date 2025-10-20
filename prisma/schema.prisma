@@ -99,7 +99,6 @@ model ProductSize {
 model Category {
   id          String       @id @default(uuid())
   name        String
-  type        CategoryType @default(COLLECTION)
   createdAt   DateTime     @default(now())
   description String?
   image       String?
@@ -385,7 +384,3 @@ enum ReportFormat {
   CSV
 }
 
-enum CategoryType {
-  COLLECTION
-  CATEGORY
-}
