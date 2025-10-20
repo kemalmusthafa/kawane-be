@@ -1,6 +1,7 @@
 # Clean Database - Remove Dummy Data with Type Field
 
 ## 🔧 Masalah yang Ditemukan:
+
 - Database masih memiliki kolom `type` di tabel `Category`
 - Ada data dummy (Bags, Shirts, Jackets, dll) yang menyebabkan error build
 - Perlu membersihkan data sebelum schema bisa di-update
@@ -10,18 +11,21 @@
 ### Opsi 1: Manual SQL di Supabase Dashboard (Recommended)
 
 **Langkah-langkah:**
+
 1. **Masuk ke Supabase Dashboard**
+
    - Go to https://supabase.com/dashboard
    - Select project Anda
    - Go to SQL Editor
 
 2. **Jalankan SQL Script:**
+
 ```sql
 -- Hapus kategori dummy yang menyebabkan masalah
-DELETE FROM "Category" 
+DELETE FROM "Category"
 WHERE name IN (
     'Bags',
-    'Shirts', 
+    'Shirts',
     'Jackets',
     'Pants',
     'Accessories',
@@ -35,6 +39,7 @@ ORDER BY "createdAt" DESC;
 ```
 
 3. **Hapus kolom type (opsional):**
+
 ```sql
 -- Hati-hati: ini akan menghapus semua data di kolom type
 ALTER TABLE "Category" DROP COLUMN IF EXISTS "type";
@@ -43,8 +48,10 @@ ALTER TABLE "Category" DROP COLUMN IF EXISTS "type";
 ### Opsi 2: Prisma DB Push dengan Data Loss
 
 **Langkah-langkah:**
+
 1. **Pastikan environment variables sudah benar**
 2. **Jalankan command:**
+
 ```bash
 npx prisma db push --accept-data-loss
 ```
@@ -54,8 +61,10 @@ npx prisma db push --accept-data-loss
 ### Opsi 3: Reset Database Lengkap
 
 **Langkah-langkah:**
+
 1. **Backup data penting terlebih dahulu**
 2. **Reset database:**
+
 ```bash
 npx prisma db push --force-reset
 npx prisma db seed
@@ -66,16 +75,19 @@ npx prisma db seed
 Setelah membersihkan database:
 
 1. **Cek kategori yang tersisa:**
+
 ```sql
 SELECT COUNT(*) as total_categories FROM "Category";
 ```
 
 2. **Test build backend:**
+
 ```bash
 npm run build
 ```
 
 3. **Test start backend:**
+
 ```bash
 npm start
 ```
@@ -90,6 +102,7 @@ npm start
 ## 📊 Expected Result:
 
 Setelah cleanup:
+
 - ✅ Tidak ada kolom `type` di tabel `Category`
 - ✅ Tidak ada data dummy (Bags, Shirts, dll)
 - ✅ Build backend berhasil tanpa error

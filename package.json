@@ -4,7 +4,7 @@
   "description": "Backend API for Kawane Studio e-commerce platform",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npx tsc && cp -rv src/templates dist/templates",
+    "build": "npx tsc && node scripts/copy-templates.js",
     "build:win": "npx tsc && xcopy /E /I /Y src\\templates dist\\templates",
     "start": "npm run build:win && node dist/index.js",
     "start:prod": "NODE_ENV=production npm run build && node dist/index.js",
