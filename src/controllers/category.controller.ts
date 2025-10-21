@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import prisma from "../prisma";
 import { uploadCategoryImageCloudinaryService } from "../services/category/upload-category-image-cloudinary.service";
+import { createCategoryService } from "../services/category/create-category.service";
+import { updateCategoryService } from "../services/category/update-category.service";
+import { deleteCategoryService } from "../services/category/delete-category.service";
+import { getCategoriesService } from "../services/category/get-categories.service";
 import {
   successResponse,
   errorResponse,
@@ -100,26 +104,15 @@ export class CategoryController {
   // Get semua kategori
   async getCategoriesController(req: Request, res: Response) {
     try {
-      const categories = await prisma.category.findMany({
-        include: {
-          products: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          _count: {
-            select: {
-              products: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
+      const { page, limit, includeProducts } = req.query;
+
+      const result = await getCategoriesService({
+        page: page ? parseInt(page as string) : undefined,
+        limit: limit ? parseInt(limit as string) : undefined,
+        includeProducts: includeProducts === "true",
       });
 
-      successResponse(res, categories, "Categories retrieved successfully");
+      successResponse(res, result, "Categories retrieved successfully");
     } catch (error: any) {
       console.error("Get categories error:", error);
       errorResponse(res, error.message, 500);
@@ -168,27 +161,11 @@ export class CategoryController {
         return errorResponse(res, "Unauthorized. Admin access required", 403);
       }
 
-      // Validasi input
-      if (!name) {
-        return errorResponse(res, "Category name is required", 400);
-      }
-
-      // Validasi duplicate name dihapus - sekarang bisa membuat category dengan nama yang sama
-
-      // Buat kategori baru
-      const newCategory = await prisma.category.create({
-        data: {
-          name: name.trim(),
-          description: description?.trim(),
-          image,
-        },
-        include: {
-          _count: {
-            select: {
-              products: true,
-            },
-          },
-        },
+      // Buat kategori baru menggunakan service
+      const newCategory = await createCategoryService({
+        name,
+        description,
+        image,
       });
 
       successResponse(res, newCategory, "Category created successfully");
@@ -209,62 +186,11 @@ export class CategoryController {
         return errorResponse(res, "Unauthorized. Admin access required", 403);
       }
 
-      // Cek apakah kategori ada
-      const existingCategory = await prisma.category.findUnique({
-        where: { id: categoryId },
-      });
-
-      if (!existingCategory) {
-        return errorResponse(res, "Category not found", 404);
-      }
-
-      // Cek duplikasi nama jika nama diubah
-      if (name && name.trim() !== existingCategory.name) {
-        const duplicateCategory = await prisma.category.findFirst({
-          where: {
-            name: {
-              equals: name.trim(),
-              mode: "insensitive",
-            },
-            id: {
-              not: categoryId,
-            },
-          },
-        });
-
-        if (duplicateCategory) {
-          return errorResponse(
-            res,
-            "Category with this name already exists",
-            400
-          );
-        }
-      }
-
-      // Update kategori
-      const updatedCategory = await prisma.category.update({
-        where: { id: categoryId },
-        data: {
-          name: name || existingCategory.name,
-          description:
-            description !== undefined
-              ? description
-              : existingCategory.description,
-          image: image !== undefined ? image : existingCategory.image,
-        },
-        include: {
-          products: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          _count: {
-            select: {
-              products: true,
-            },
-          },
-        },
+      // Update kategori menggunakan service
+      const updatedCategory = await updateCategoryService(categoryId, {
+        name,
+        description,
+        image,
       });
 
       successResponse(res, updatedCategory, "Category updated successfully");
@@ -284,33 +210,10 @@ export class CategoryController {
         return errorResponse(res, "Unauthorized. Admin access required", 403);
       }
 
-      // Cek apakah kategori ada
-      const existingCategory = await prisma.category.findUnique({
-        where: { id: categoryId },
-        include: {
-          products: true,
-        },
-      });
+      // Delete kategori menggunakan service
+      const result = await deleteCategoryService(categoryId);
 
-      if (!existingCategory) {
-        return errorResponse(res, "Category not found", 404);
-      }
-
-      // Cek apakah kategori memiliki produk
-      if (existingCategory.products.length > 0) {
-        return errorResponse(
-          res,
-          "Cannot delete category with existing products",
-          400
-        );
-      }
-
-      // Delete kategori
-      await prisma.category.delete({
-        where: { id: categoryId },
-      });
-
-      successResponse(res, null, "Category deleted successfully");
+      successResponse(res, result, result.message);
     } catch (error: any) {
       console.error("Delete category error:", error);
       errorResponse(res, error.message, 500);
