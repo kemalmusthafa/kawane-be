@@ -102,12 +102,18 @@ const app = (0, express_1.default)();
 // Increase payload size limit for image uploads
 app.use(express_1.default.json({ limit: "50mb" }));
 app.use(express_1.default.urlencoded({ limit: "50mb", extended: true }));
-// CORS configuration
+// CORS configuration - More permissive for development and production
 const corsOptions = {
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin)
             return callback(null, true);
+        // In development, allow all localhost origins
+        if (process.env.NODE_ENV === "development") {
+            if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+                return callback(null, true);
+            }
+        }
         const allowedOrigins = [
             "http://localhost:3000",
             "http://127.0.0.1:3000",
@@ -117,14 +123,35 @@ const corsOptions = {
             "https://61b74318a24d.ngrok-free.app",
             "https://kawane-fe.vercel.app",
             "https://kawane-studio-frontend.vercel.app",
-            "https://kawane-be.vercel.app", // Add backend URL for self-referencing
+            "https://kawane-be.vercel.app",
             process.env.BASE_URL_FE || "http://localhost:3000",
         ];
+        // Allow ngrok URLs dynamically (any ngrok subdomain)
+        if (origin && origin.includes("ngrok")) {
+            return callback(null, true);
+        }
+        // Allow Vercel preview URLs (any vercel.app subdomain)
+        if (origin && origin.includes("vercel.app")) {
+            return callback(null, true);
+        }
+        // Allow localhost in any port for development
+        if (origin &&
+            (origin.includes("localhost") || origin.includes("127.0.0.1"))) {
+            return callback(null, true);
+        }
         if (allowedOrigins.includes(origin)) {
             callback(null, true);
         }
         else {
-            callback(new Error("Not allowed by CORS"), false);
+            console.log(`CORS blocked origin: ${origin}`);
+            // In production, be more strict
+            if (process.env.NODE_ENV === "production") {
+                callback(new Error("Not allowed by CORS"), false);
+            }
+            else {
+                // In development, allow unknown origins
+                callback(null, true);
+            }
         }
     },
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
@@ -136,6 +163,8 @@ const corsOptions = {
         "Authorization",
         "Cache-Control",
         "Pragma",
+        "ngrok-skip-browser-warning",
+        "x-ngrok-skip-browser-warning", // Alternative ngrok header
     ],
     credentials: true,
     optionsSuccessStatus: 200,
@@ -144,12 +173,16 @@ const corsOptions = {
 app.use((0, cors_1.default)(corsOptions));
 // Handle preflight requests
 app.options("*", (0, cors_1.default)(corsOptions));
-// Additional CORS headers for all responses
+// Fallback CORS middleware for any missed requests
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma");
-    res.header("Access-Control-Allow-Credentials", "true");
+    const origin = req.headers.origin;
+    // If origin is not set by CORS middleware, set it manually
+    if (!res.getHeader("Access-Control-Allow-Origin") && origin) {
+        res.header("Access-Control-Allow-Origin", origin);
+        res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, ngrok-skip-browser-warning, x-ngrok-skip-browser-warning");
+        res.header("Access-Control-Allow-Credentials", "true");
+    }
     // Fix Cross-Origin-Opener-Policy for Google OAuth
     res.header("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
     res.header("Cross-Origin-Embedder-Policy", "unsafe-none");
@@ -161,10 +194,16 @@ app.use(rate_limit_middleware_1.generalRateLimit);
 app.use(rate_limit_middleware_1.rateLimitInfo);
 app.get("/api/health/db", async (_req, res) => {
     try {
-        // Test database connection
-        const { default: prisma } = await Promise.resolve().then(() => __importStar(require("./prisma")));
-        await prisma.$queryRaw `SELECT 1`;
-        await prisma.$disconnect();
+        // Test database connection with timeout
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Database connection timeout")), 10000);
+        });
+        const dbTestPromise = (async () => {
+            const { default: prisma } = await Promise.resolve().then(() => __importStar(require("./prisma")));
+            await prisma.$queryRaw `SELECT 1`;
+            await prisma.$disconnect();
+        })();
+        await Promise.race([dbTestPromise, timeoutPromise]);
         res.status(200).json({
             success: true,
             message: "Database connection is healthy",
@@ -172,7 +211,8 @@ app.get("/api/health/db", async (_req, res) => {
         });
     }
     catch (error) {
-        res.status(500).json({
+        console.error("Database health check failed:", error);
+        res.status(503).json({
             success: false,
             message: "Database connection failed",
             error: error.message,

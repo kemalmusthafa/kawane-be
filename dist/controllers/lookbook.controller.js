@@ -25,19 +25,33 @@ const updateLookbookPhotoSchema = zod_1.z.object({
 });
 // Get all lookbook photos
 exports.getAllLookbookPhotos = (0, async_handler_middleware_1.asyncHandler)(async (req, res) => {
-    const { isActive } = req.query;
-    const where = {};
-    if (isActive !== undefined) {
-        where.isActive = isActive === "true";
+    try {
+        const { isActive } = req.query;
+        const where = {};
+        if (isActive !== undefined) {
+            where.isActive = isActive === "true";
+        }
+        const photos = await prisma_1.default.lookbookPhoto.findMany({
+            where,
+            orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+        });
+        res.status(200).json({
+            success: true,
+            data: photos,
+        });
     }
-    const photos = await prisma_1.default.lookbookPhoto.findMany({
-        where,
-        orderBy: [{ order: "asc" }, { createdAt: "desc" }],
-    });
-    res.status(200).json({
-        success: true,
-        data: photos,
-    });
+    catch (error) {
+        console.error("Error fetching lookbook photos:", error);
+        // Handle database connection errors
+        if (error.code === "P1001" ||
+            error.message.includes("Can't reach database server")) {
+            return res.status(503).json({
+                success: false,
+                message: "Database service temporarily unavailable. Please try again later.",
+            });
+        }
+        throw error; // Let asyncHandler handle other errors
+    }
 });
 // Get single lookbook photo
 exports.getLookbookPhoto = (0, async_handler_middleware_1.asyncHandler)(async (req, res) => {

@@ -13,13 +13,14 @@ class DealCronService {
             return;
         }
         console.log("🚀 Starting deal expiration monitoring...");
-        // Run every 5 minutes to check for expired deals (more frequent)
-        const expireJob = node_cron_1.default.schedule("*/5 * * * *", async () => {
+        // Run every 10 minutes to check for expired deals (less frequent to reduce load)
+        const expireJob = node_cron_1.default.schedule("*/10 * * * *", async () => {
             try {
                 console.log("🕐 Running deal expiration check...");
                 // Add timeout to prevent hanging connections
                 const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error("Deal expiration check timeout")), 30000); // 30 seconds timeout
+                    setTimeout(() => reject(new Error("Deal expiration check timeout")), 20000 // ✅ Reduced to 20 seconds timeout
+                    );
                 });
                 const result = (await Promise.race([
                     (0, deal_expiration_service_1.expireDealsService)(),

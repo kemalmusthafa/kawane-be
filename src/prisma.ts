@@ -22,14 +22,6 @@ export const prisma =
       isolationLevel: "ReadCommitted",
       maxWait: 5000, // ✅ Reduced max wait time
     },
-    // ✅ Add connection pooling and retry configuration
-    __internal: {
-      engine: {
-        connectTimeout: 10000, // 10 seconds connection timeout
-        queryTimeout: 30000, // 30 seconds query timeout
-        poolTimeout: 20000, // 20 seconds pool timeout
-      },
-    },
   });
 
 // ✅ Add connection health check

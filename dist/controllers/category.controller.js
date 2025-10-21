@@ -6,6 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CategoryController = void 0;
 const prisma_1 = __importDefault(require("../prisma"));
 const upload_category_image_cloudinary_service_1 = require("../services/category/upload-category-image-cloudinary.service");
+const create_category_service_1 = require("../services/category/create-category.service");
+const update_category_service_1 = require("../services/category/update-category.service");
+const delete_category_service_1 = require("../services/category/delete-category.service");
+const get_categories_service_1 = require("../services/category/get-categories.service");
 const async_handler_middleware_1 = require("../middlewares/async-handler.middleware");
 class CategoryController {
     // Upload gambar kategori (Cloudinary)
@@ -77,25 +81,13 @@ class CategoryController {
     // Get semua kategori
     async getCategoriesController(req, res) {
         try {
-            const categories = await prisma_1.default.category.findMany({
-                include: {
-                    products: {
-                        select: {
-                            id: true,
-                            name: true,
-                        },
-                    },
-                    _count: {
-                        select: {
-                            products: true,
-                        },
-                    },
-                },
-                orderBy: {
-                    createdAt: "desc",
-                },
+            const { page, limit, includeProducts } = req.query;
+            const result = await (0, get_categories_service_1.getCategoriesService)({
+                page: page ? parseInt(page) : undefined,
+                limit: limit ? parseInt(limit) : undefined,
+                includeProducts: includeProducts === "true",
             });
-            (0, async_handler_middleware_1.successResponse)(res, categories, "Categories retrieved successfully");
+            (0, async_handler_middleware_1.successResponse)(res, result, "Categories retrieved successfully");
         }
         catch (error) {
             console.error("Get categories error:", error);
@@ -139,25 +131,11 @@ class CategoryController {
             if (!req.user || req.user.role !== "ADMIN") {
                 return (0, async_handler_middleware_1.errorResponse)(res, "Unauthorized. Admin access required", 403);
             }
-            // Validasi input
-            if (!name) {
-                return (0, async_handler_middleware_1.errorResponse)(res, "Category name is required", 400);
-            }
-            // Validasi duplicate name dihapus - sekarang bisa membuat category dengan nama yang sama
-            // Buat kategori baru
-            const newCategory = await prisma_1.default.category.create({
-                data: {
-                    name: name.trim(),
-                    description: description?.trim(),
-                    image,
-                },
-                include: {
-                    _count: {
-                        select: {
-                            products: true,
-                        },
-                    },
-                },
+            // Buat kategori baru menggunakan service
+            const newCategory = await (0, create_category_service_1.createCategoryService)({
+                name,
+                description,
+                image,
             });
             (0, async_handler_middleware_1.successResponse)(res, newCategory, "Category created successfully");
         }
@@ -175,53 +153,11 @@ class CategoryController {
             if (!req.user || req.user.role !== "ADMIN") {
                 return (0, async_handler_middleware_1.errorResponse)(res, "Unauthorized. Admin access required", 403);
             }
-            // Cek apakah kategori ada
-            const existingCategory = await prisma_1.default.category.findUnique({
-                where: { id: categoryId },
-            });
-            if (!existingCategory) {
-                return (0, async_handler_middleware_1.errorResponse)(res, "Category not found", 404);
-            }
-            // Cek duplikasi nama jika nama diubah
-            if (name && name.trim() !== existingCategory.name) {
-                const duplicateCategory = await prisma_1.default.category.findFirst({
-                    where: {
-                        name: {
-                            equals: name.trim(),
-                            mode: "insensitive",
-                        },
-                        id: {
-                            not: categoryId,
-                        },
-                    },
-                });
-                if (duplicateCategory) {
-                    return (0, async_handler_middleware_1.errorResponse)(res, "Category with this name already exists", 400);
-                }
-            }
-            // Update kategori
-            const updatedCategory = await prisma_1.default.category.update({
-                where: { id: categoryId },
-                data: {
-                    name: name || existingCategory.name,
-                    description: description !== undefined
-                        ? description
-                        : existingCategory.description,
-                    image: image !== undefined ? image : existingCategory.image,
-                },
-                include: {
-                    products: {
-                        select: {
-                            id: true,
-                            name: true,
-                        },
-                    },
-                    _count: {
-                        select: {
-                            products: true,
-                        },
-                    },
-                },
+            // Update kategori menggunakan service
+            const updatedCategory = await (0, update_category_service_1.updateCategoryService)(categoryId, {
+                name,
+                description,
+                image,
             });
             (0, async_handler_middleware_1.successResponse)(res, updatedCategory, "Category updated successfully");
         }
@@ -238,25 +174,9 @@ class CategoryController {
             if (!req.user || req.user.role !== "ADMIN") {
                 return (0, async_handler_middleware_1.errorResponse)(res, "Unauthorized. Admin access required", 403);
             }
-            // Cek apakah kategori ada
-            const existingCategory = await prisma_1.default.category.findUnique({
-                where: { id: categoryId },
-                include: {
-                    products: true,
-                },
-            });
-            if (!existingCategory) {
-                return (0, async_handler_middleware_1.errorResponse)(res, "Category not found", 404);
-            }
-            // Cek apakah kategori memiliki produk
-            if (existingCategory.products.length > 0) {
-                return (0, async_handler_middleware_1.errorResponse)(res, "Cannot delete category with existing products", 400);
-            }
-            // Delete kategori
-            await prisma_1.default.category.delete({
-                where: { id: categoryId },
-            });
-            (0, async_handler_middleware_1.successResponse)(res, null, "Category deleted successfully");
+            // Delete kategori menggunakan service
+            const result = await (0, delete_category_service_1.deleteCategoryService)(categoryId);
+            (0, async_handler_middleware_1.successResponse)(res, result, result.message);
         }
         catch (error) {
             console.error("Delete category error:", error);

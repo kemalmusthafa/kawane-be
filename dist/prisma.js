@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.prisma = void 0;
 const client_1 = require("../prisma/generated/client");
 const globalForPrisma = globalThis;
-// ✅ OPTIMIZED: Enhanced Prisma configuration for better performance
+// ✅ OPTIMIZED: Enhanced Prisma configuration for better performance and connection handling
 exports.prisma = globalForPrisma.prisma ??
     new client_1.PrismaClient({
         log: process.env.NODE_ENV === "development"
@@ -15,11 +15,26 @@ exports.prisma = globalForPrisma.prisma ??
             },
         },
         transactionOptions: {
-            timeout: 60000, // ✅ Increased to 60 seconds
+            timeout: 30000, // ✅ Reduced to 30 seconds for better timeout handling
             isolationLevel: "ReadCommitted",
-            maxWait: 10000, // ✅ Max wait time for transaction
+            maxWait: 5000, // ✅ Reduced max wait time
         },
     });
+// ✅ Add connection health check
+if (process.env.NODE_ENV === "production") {
+    // Graceful shutdown handling
+    process.on("beforeExit", async () => {
+        await exports.prisma.$disconnect();
+    });
+    process.on("SIGINT", async () => {
+        await exports.prisma.$disconnect();
+        process.exit(0);
+    });
+    process.on("SIGTERM", async () => {
+        await exports.prisma.$disconnect();
+        process.exit(0);
+    });
+}
 if (process.env.NODE_ENV !== "production")
     globalForPrisma.prisma = exports.prisma;
 exports.default = exports.prisma;
