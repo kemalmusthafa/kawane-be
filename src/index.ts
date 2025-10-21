@@ -98,9 +98,20 @@ const corsOptions = {
       process.env.BASE_URL_FE || "http://localhost:3000",
     ];
 
+    // Allow ngrok URLs dynamically
+    if (origin && origin.includes("ngrok")) {
+      return callback(null, true);
+    }
+
+    // Allow Vercel preview URLs
+    if (origin && origin.includes("vercel.app")) {
+      return callback(null, true);
+    }
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log(`CORS blocked origin: ${origin}`);
       callback(new Error("Not allowed by CORS"), false);
     }
   },
@@ -113,6 +124,7 @@ const corsOptions = {
     "Authorization",
     "Cache-Control",
     "Pragma",
+    "ngrok-skip-browser-warning", // Allow ngrok headers
   ],
   credentials: true,
   optionsSuccessStatus: 200,
@@ -124,18 +136,8 @@ app.use(cors(corsOptions));
 // Handle preflight requests
 app.options("*", cors(corsOptions));
 
-// Additional CORS headers for all responses
+// Additional CORS headers for all responses (only for specific policies)
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PATCH, PUT, DELETE, OPTIONS"
-  );
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma"
-  );
-  res.header("Access-Control-Allow-Credentials", "true");
   // Fix Cross-Origin-Opener-Policy for Google OAuth
   res.header("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
   res.header("Cross-Origin-Embedder-Policy", "unsafe-none");
