@@ -6,8 +6,10 @@
   "scripts": {
     "build": "npx tsc && node scripts/copy-templates.js",
     "build:win": "npx tsc && xcopy /E /I /Y src\\templates dist\\templates",
+    "build:linux": "npx tsc && node scripts/copy-templates.js",
     "start": "npm run build:win && node dist/index.js",
     "start:prod": "NODE_ENV=production npm run build && node dist/index.js",
+    "start:vercel": "NODE_ENV=production npm run build:linux && node dist/index.js",
     "dev": "ts-node-dev src/index.ts",
     "dev:prod": "NODE_ENV=production ts-node-dev src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -34,6 +36,10 @@
   "author": "Kawane Studio",
   "license": "MIT",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",

@@ -116,7 +116,10 @@ const corsOptions = {
     }
 
     // Allow localhost in any port for development
-    if (origin && (origin.includes("localhost") || origin.includes("127.0.0.1"))) {
+    if (
+      origin &&
+      (origin.includes("localhost") || origin.includes("127.0.0.1"))
+    ) {
       return callback(null, true);
     }
 
@@ -158,20 +161,26 @@ app.options("*", cors(corsOptions));
 // Fallback CORS middleware for any missed requests
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  
+
   // If origin is not set by CORS middleware, set it manually
   if (!res.getHeader("Access-Control-Allow-Origin") && origin) {
     res.header("Access-Control-Allow-Origin", origin);
-    res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, ngrok-skip-browser-warning, x-ngrok-skip-browser-warning");
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, ngrok-skip-browser-warning, x-ngrok-skip-browser-warning"
+    );
     res.header("Access-Control-Allow-Credentials", "true");
   }
-  
+
   // Fix Cross-Origin-Opener-Policy for Google OAuth
   res.header("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
   res.header("Cross-Origin-Embedder-Policy", "unsafe-none");
   res.header("Cross-Origin-Resource-Policy", "cross-origin");
-  
+
   next();
 });
 
