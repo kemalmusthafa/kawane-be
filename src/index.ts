@@ -151,10 +151,18 @@ app.use(rateLimitInfo);
 
 app.get("/api/health/db", async (_req: Request, res: Response) => {
   try {
-    // Test database connection
-    const { default: prisma } = await import("./prisma");
-    await prisma.$queryRaw`SELECT 1`;
-    await prisma.$disconnect();
+    // Test database connection with timeout
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Database connection timeout")), 10000);
+    });
+
+    const dbTestPromise = (async () => {
+      const { default: prisma } = await import("./prisma");
+      await prisma.$queryRaw`SELECT 1`;
+      await prisma.$disconnect();
+    })();
+
+    await Promise.race([dbTestPromise, timeoutPromise]);
 
     res.status(200).json({
       success: true,
@@ -162,7 +170,8 @@ app.get("/api/health/db", async (_req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    res.status(500).json({
+    console.error("Database health check failed:", error);
+    res.status(503).json({
       success: false,
       message: "Database connection failed",
       error: error.message,

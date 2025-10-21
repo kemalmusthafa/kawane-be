@@ -24,22 +24,40 @@ const updateLookbookPhotoSchema = z.object({
 // Get all lookbook photos
 export const getAllLookbookPhotos = asyncHandler(
   async (req: Request, res: Response) => {
-    const { isActive } = req.query;
+    try {
+      const { isActive } = req.query;
 
-    const where: any = {};
-    if (isActive !== undefined) {
-      where.isActive = isActive === "true";
+      const where: any = {};
+      if (isActive !== undefined) {
+        where.isActive = isActive === "true";
+      }
+
+      const photos = await prisma.lookbookPhoto.findMany({
+        where,
+        orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+      });
+
+      res.status(200).json({
+        success: true,
+        data: photos,
+      });
+    } catch (error: any) {
+      console.error("Error fetching lookbook photos:", error);
+
+      // Handle database connection errors
+      if (
+        error.code === "P1001" ||
+        error.message.includes("Can't reach database server")
+      ) {
+        return res.status(503).json({
+          success: false,
+          message:
+            "Database service temporarily unavailable. Please try again later.",
+        });
+      }
+
+      throw error; // Let asyncHandler handle other errors
     }
-
-    const photos = await prisma.lookbookPhoto.findMany({
-      where,
-      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
-    });
-
-    res.status(200).json({
-      success: true,
-      data: photos,
-    });
   }
 );
 

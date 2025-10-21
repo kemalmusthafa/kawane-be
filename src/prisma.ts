@@ -4,7 +4,7 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// ✅ OPTIMIZED: Enhanced Prisma configuration for better performance
+// ✅ OPTIMIZED: Enhanced Prisma configuration for better performance and connection handling
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
@@ -18,11 +18,37 @@ export const prisma =
       },
     },
     transactionOptions: {
-      timeout: 60000, // ✅ Increased to 60 seconds
+      timeout: 30000, // ✅ Reduced to 30 seconds for better timeout handling
       isolationLevel: "ReadCommitted",
-      maxWait: 10000, // ✅ Max wait time for transaction
+      maxWait: 5000, // ✅ Reduced max wait time
+    },
+    // ✅ Add connection pooling and retry configuration
+    __internal: {
+      engine: {
+        connectTimeout: 10000, // 10 seconds connection timeout
+        queryTimeout: 30000, // 30 seconds query timeout
+        poolTimeout: 20000, // 20 seconds pool timeout
+      },
     },
   });
+
+// ✅ Add connection health check
+if (process.env.NODE_ENV === "production") {
+  // Graceful shutdown handling
+  process.on("beforeExit", async () => {
+    await prisma.$disconnect();
+  });
+
+  process.on("SIGINT", async () => {
+    await prisma.$disconnect();
+    process.exit(0);
+  });
+
+  process.on("SIGTERM", async () => {
+    await prisma.$disconnect();
+    process.exit(0);
+  });
+}
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
