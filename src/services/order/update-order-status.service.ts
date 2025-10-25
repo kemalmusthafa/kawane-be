@@ -21,7 +21,7 @@ export const updateOrderStatusService = async (data: UpdateOrderStatusData) => {
 
   if (!order) throw new Error("Order not found");
   if (order.status === data.status)
-    throw new Error("Order status is already updated");
+    throw new Error(`Order status is already ${data.status.toLowerCase()}. Cannot update to the same status.`);
 
   const statusMessages = {
     [OrderStatus.CHECKOUT]: "Order placed successfully",
