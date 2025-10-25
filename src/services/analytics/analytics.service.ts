@@ -11,11 +11,13 @@ export class AnalyticsService {
     // Optimize: Split into smaller batches to avoid connection pool timeout
     const [totalRevenue, totalOrders, totalCustomers, totalProducts] =
       await Promise.all([
-        // Current period totals
+        // Current period totals - only count orders with PAID payment status
         prisma.order.aggregate({
           where: {
             createdAt: { gte: startDate },
-            status: "COMPLETED",
+            payment: {
+              status: "PAID",
+            },
           },
           _sum: { totalAmount: true },
         }),
@@ -36,14 +38,16 @@ export class AnalyticsService {
       previousPeriodOrders,
       previousPeriodCustomers,
     ] = await Promise.all([
-      // Previous period for comparison
+      // Previous period for comparison - only count orders with PAID payment status
       prisma.order.aggregate({
         where: {
           createdAt: {
             gte: new Date(startDate.getTime() - period * 24 * 60 * 60 * 1000),
             lt: startDate,
           },
-          status: "COMPLETED",
+          payment: {
+            status: "PAID",
+          },
         },
         _sum: { totalAmount: true },
       }),
@@ -128,7 +132,9 @@ export class AnalyticsService {
       const sales = await prisma.order.aggregate({
         where: {
           createdAt: { gte: startOfDay, lte: endOfDay },
-          status: "COMPLETED",
+          payment: {
+            status: "PAID",
+          },
         },
         _sum: { totalAmount: true },
       });
@@ -153,7 +159,9 @@ export class AnalyticsService {
         where: {
           order: {
             createdAt: { gte: startDate },
-            status: "COMPLETED",
+            payment: {
+              status: "PAID",
+            },
           },
         },
         _sum: {
