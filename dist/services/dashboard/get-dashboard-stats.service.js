@@ -32,9 +32,14 @@ const getDashboardStatsService = async (params = {}) => {
                     _count: { id: true },
                     _min: { stock: true },
                 }),
-                // Order statistics with aggregation
+                // Order statistics with aggregation - only count orders with PAID payment status
                 tx.order.aggregate({
-                    where: dateFilter,
+                    where: {
+                        ...dateFilter,
+                        payment: {
+                            status: "SUCCEEDED",
+                        },
+                    },
                     _count: { id: true },
                     _sum: { totalAmount: true },
                 }),

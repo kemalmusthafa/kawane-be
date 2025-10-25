@@ -158,12 +158,14 @@ export const getBestSellersService = async (
   const productsWithMetrics: BestSellerProduct[] = [];
 
   for (const product of products) {
-    // Get order items for this product within the time range
+    // Get order items for this product within the time range - only from PAID orders
     const orderItems = await prisma.orderItem.findMany({
       where: {
         productId: product.id,
         order: {
-          status: "COMPLETED",
+          payment: {
+            status: "SUCCEEDED",
+          },
           createdAt: { gte: startDate },
         },
       },

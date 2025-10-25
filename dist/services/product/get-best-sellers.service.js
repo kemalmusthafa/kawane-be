@@ -112,12 +112,14 @@ const getBestSellersService = async (params = {}) => {
     // Calculate best seller metrics for each product
     const productsWithMetrics = [];
     for (const product of products) {
-        // Get order items for this product within the time range
+        // Get order items for this product within the time range - only from PAID orders
         const orderItems = await prisma_1.default.orderItem.findMany({
             where: {
                 productId: product.id,
                 order: {
-                    status: "COMPLETED",
+                    payment: {
+                        status: "SUCCEEDED",
+                    },
                     createdAt: { gte: startDate },
                 },
             },

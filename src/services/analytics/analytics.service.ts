@@ -16,7 +16,7 @@ export class AnalyticsService {
           where: {
             createdAt: { gte: startDate },
             payment: {
-              status: "PAID",
+              status: "SUCCEEDED",
             },
           },
           _sum: { totalAmount: true },
@@ -46,7 +46,7 @@ export class AnalyticsService {
             lt: startDate,
           },
           payment: {
-            status: "PAID",
+            status: "SUCCEEDED",
           },
         },
         _sum: { totalAmount: true },
@@ -133,7 +133,7 @@ export class AnalyticsService {
         where: {
           createdAt: { gte: startOfDay, lte: endOfDay },
           payment: {
-            status: "PAID",
+            status: "SUCCEEDED",
           },
         },
         _sum: { totalAmount: true },
@@ -160,7 +160,7 @@ export class AnalyticsService {
           order: {
             createdAt: { gte: startDate },
             payment: {
-              status: "PAID",
+              status: "SUCCEEDED",
             },
           },
         },
