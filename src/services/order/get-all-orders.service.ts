@@ -16,7 +16,7 @@ export const getAllOrdersService = async (params: GetAllOrdersParams) => {
   if (status) filter.status = status;
   if (paymentStatus) {
     filter.payment = {
-      status: paymentStatus
+      status: paymentStatus,
     };
   }
 

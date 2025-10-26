@@ -265,12 +265,7 @@ exports.orderQuerySchema = zod_1.z.object({
     ])
         .optional(),
     paymentStatus: zod_1.z
-        .enum([
-        "PENDING",
-        "SUCCEEDED",
-        "FAILED",
-        "CANCELLED",
-    ])
+        .enum(["PENDING", "SUCCEEDED", "FAILED", "CANCELLED"])
         .optional(),
     search: zod_1.z.string().optional(),
     page: zod_1.z.coerce.number().int().min(1, "Page must be at least 1").default(1),

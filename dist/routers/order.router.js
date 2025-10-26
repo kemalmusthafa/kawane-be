@@ -25,6 +25,8 @@ class OrderRouter {
         this.router.put("/:orderId/status", auth_middleware_1.requireAuth, auth_middleware_1.requireStaff, (0, zod_validation_middleware_1.validateParams)(validation_schemas_1.orderIdParamSchema), (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.updateOrderStatusSchema), this.orderController.updateOrderStatusController);
         // Cancel order (Customer only)
         this.router.put("/:orderId/cancel", auth_middleware_1.requireAuth, (0, zod_validation_middleware_1.validateParams)(validation_schemas_1.orderIdParamSchema), this.orderController.cancelOrderController);
+        // Delete order (Admin/Staff only)
+        this.router.delete("/:orderId", auth_middleware_1.requireAuth, auth_middleware_1.requireStaff, (0, zod_validation_middleware_1.validateParams)(validation_schemas_1.orderIdParamSchema), this.orderController.deleteOrderController);
         // WhatsApp Order Routes
         // Create WhatsApp order
         this.router.post("/whatsapp", auth_middleware_1.requireAuth, (0, zod_validation_middleware_1.validateBody)(validation_schemas_1.createWhatsAppOrderSchema), this.orderController.createWhatsAppOrderController);

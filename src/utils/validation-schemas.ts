@@ -324,12 +324,7 @@ export const orderQuerySchema = z.object({
     ])
     .optional(),
   paymentStatus: z
-    .enum([
-      "PENDING",
-      "SUCCEEDED",
-      "FAILED",
-      "CANCELLED",
-    ])
+    .enum(["PENDING", "SUCCEEDED", "FAILED", "CANCELLED"])
     .optional(),
   search: z.string().optional(),
   page: z.coerce.number().int().min(1, "Page must be at least 1").default(1),

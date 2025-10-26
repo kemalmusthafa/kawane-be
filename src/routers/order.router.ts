@@ -77,6 +77,15 @@ export class OrderRouter {
       this.orderController.cancelOrderController
     );
 
+    // Delete order (Admin/Staff only)
+    this.router.delete(
+      "/:orderId",
+      requireAuth,
+      requireStaff,
+      validateParams(orderIdParamSchema),
+      this.orderController.deleteOrderController
+    );
+
     // WhatsApp Order Routes
     // Create WhatsApp order
     this.router.post(

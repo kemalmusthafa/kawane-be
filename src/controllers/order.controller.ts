@@ -5,6 +5,7 @@ import { getAllOrdersService } from "../services/order/get-all-orders.service";
 import { updateOrderStatusService } from "../services/order/update-order-status.service";
 import { getOrderDetailService } from "../services/order/get-order-detail.service";
 import { cancelOrderService } from "../services/order/cancel-order.service";
+import { deleteOrderService } from "../services/order/delete-order.service";
 import {
   createWhatsAppOrderService,
   updateWhatsAppOrderStatusService,
@@ -178,6 +179,22 @@ export class OrderController {
       });
 
       successResponse(res, result, "Order cancelled successfully");
+    } catch (error: any) {
+      errorResponse(res, error.message, 400);
+    }
+  }
+
+  async deleteOrderController(req: AuthRequest, res: Response) {
+    try {
+      // Use validated params data if available, otherwise fallback to req.params
+      const paramsData = (req as any).validatedParams || req.params;
+      const { orderId } = paramsData;
+
+      const result = await deleteOrderService({
+        orderId,
+      });
+
+      successResponse(res, result, "Order deleted successfully");
     } catch (error: any) {
       errorResponse(res, error.message, 400);
     }

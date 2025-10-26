@@ -12,7 +12,7 @@ const getAllOrdersService = async (params) => {
         filter.status = status;
     if (paymentStatus) {
         filter.payment = {
-            status: paymentStatus
+            status: paymentStatus,
         };
     }
     // Add search functionality

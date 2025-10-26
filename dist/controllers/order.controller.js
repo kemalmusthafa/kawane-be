@@ -10,6 +10,7 @@ const get_all_orders_service_1 = require("../services/order/get-all-orders.servi
 const update_order_status_service_1 = require("../services/order/update-order-status.service");
 const get_order_detail_service_1 = require("../services/order/get-order-detail.service");
 const cancel_order_service_1 = require("../services/order/cancel-order.service");
+const delete_order_service_1 = require("../services/order/delete-order.service");
 const whatsapp_order_service_1 = require("../services/order/whatsapp-order.service");
 const async_handler_middleware_1 = require("../middlewares/async-handler.middleware");
 const prisma_1 = __importDefault(require("../prisma"));
@@ -140,6 +141,20 @@ class OrderController {
                 userId,
             });
             (0, async_handler_middleware_1.successResponse)(res, result, "Order cancelled successfully");
+        }
+        catch (error) {
+            (0, async_handler_middleware_1.errorResponse)(res, error.message, 400);
+        }
+    }
+    async deleteOrderController(req, res) {
+        try {
+            // Use validated params data if available, otherwise fallback to req.params
+            const paramsData = req.validatedParams || req.params;
+            const { orderId } = paramsData;
+            const result = await (0, delete_order_service_1.deleteOrderService)({
+                orderId,
+            });
+            (0, async_handler_middleware_1.successResponse)(res, result, "Order deleted successfully");
         }
         catch (error) {
             (0, async_handler_middleware_1.errorResponse)(res, error.message, 400);
