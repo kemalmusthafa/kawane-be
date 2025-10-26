@@ -29,13 +29,15 @@ export const deleteOrderService = async (data: DeleteOrderData) => {
 
   // Check if order can be deleted (only allow deletion of cancelled orders)
   if (order.status !== OrderStatus.CANCELLED) {
-    throw new Error("Only cancelled orders can be deleted. Please cancel the order first.");
+    throw new Error(
+      "Only cancelled orders can be deleted. Please cancel the order first."
+    );
   }
 
   // Use transaction to ensure data consistency
   const result = await prisma.$transaction(async (tx) => {
     // Delete related records first (due to foreign key constraints)
-    
+
     // Delete inventory logs related to this order
     await tx.inventoryLog.deleteMany({
       where: {
@@ -69,7 +71,7 @@ export const deleteOrderService = async (data: DeleteOrderData) => {
       const addressUsageCount = await tx.order.count({
         where: { addressId: order.addressId },
       });
-      
+
       if (addressUsageCount <= 1) {
         await tx.address.delete({
           where: { id: order.addressId! },
