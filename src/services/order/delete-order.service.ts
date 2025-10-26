@@ -27,10 +27,10 @@ export const deleteOrderService = async (data: DeleteOrderData) => {
     throw new Error("Order not found");
   }
 
-  // Check if order can be deleted (only allow deletion of cancelled orders)
-  if (order.status !== OrderStatus.CANCELLED) {
+  // Check if order can be deleted (allow pending and cancelled orders to be deleted)
+  if (order.status === OrderStatus.COMPLETED) {
     throw new Error(
-      "Only cancelled orders can be deleted. Please cancel the order first."
+      "Completed orders cannot be deleted. Please cancel the order first."
     );
   }
 
