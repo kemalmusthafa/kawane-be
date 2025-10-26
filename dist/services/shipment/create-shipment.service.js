@@ -32,6 +32,7 @@ const createShipmentService = async (data) => {
         // ✅ FIXED: More flexible order status validation using enum
         const isReadyForShipment = order.status === client_1.OrderStatus.PAID ||
             order.status === client_1.OrderStatus.COMPLETED ||
+            order.status === client_1.OrderStatus.SHIPPED ||
             (order.status === client_1.OrderStatus.PENDING &&
                 order.payment?.status === "SUCCEEDED");
         if (!isReadyForShipment) {
@@ -57,14 +58,15 @@ const createShipmentService = async (data) => {
                 orderId: data.orderId,
                 trackingNo: trackingNumber,
                 courier: data.carrier,
-                cost: 0, // Default cost, can be updated later
-                estimatedDays: data.method === "SAME_DAY"
-                    ? 1
-                    : data.method === "EXPRESS"
-                        ? 2
-                        : data.method === "OVERNIGHT"
-                            ? 1
-                            : 3,
+                cost: data.cost || 0, // Use provided cost or default to 0
+                estimatedDays: data.estimatedDays ||
+                    (data.method === "SAME_DAY"
+                        ? 1
+                        : data.method === "EXPRESS"
+                            ? 2
+                            : data.method === "OVERNIGHT"
+                                ? 1
+                                : 3),
             },
             include: {
                 order: {

@@ -25,9 +25,9 @@ const deleteOrderService = async (data) => {
     if (!order) {
         throw new Error("Order not found");
     }
-    // Check if order can be deleted (only allow deletion of cancelled orders)
-    if (order.status !== client_1.OrderStatus.CANCELLED) {
-        throw new Error("Only cancelled orders can be deleted. Please cancel the order first.");
+    // Check if order can be deleted (allow pending and cancelled orders to be deleted)
+    if (order.status === client_1.OrderStatus.COMPLETED) {
+        throw new Error("Completed orders cannot be deleted. Please cancel the order first.");
     }
     // Use transaction to ensure data consistency
     const result = await prisma_1.default.$transaction(async (tx) => {

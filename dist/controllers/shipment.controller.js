@@ -137,10 +137,12 @@ class ShipmentController {
             console.log("📊 getShipmentStatsController totalShipments:", totalShipments);
             const result = {
                 totalShipments,
-                shipmentsByCarrier: shipmentsByCarrier.map((item) => ({
+                shipmentsByCarrier: shipmentsByCarrier
+                    .map((item) => ({
                     carrier: item.courier,
                     count: item._count.courier,
-                })),
+                }))
+                    .sort((a, b) => b.count - a.count), // Sort by count descending
             };
             console.log("📊 getShipmentStatsController result:", result);
             (0, async_handler_middleware_1.successResponse)(res, result, "Shipment statistics retrieved successfully");

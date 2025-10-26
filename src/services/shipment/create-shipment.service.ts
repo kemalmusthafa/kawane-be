@@ -8,6 +8,8 @@ interface CreateShipmentData {
   method: string;
   estimatedDelivery?: Date;
   notes?: string;
+  cost?: number;
+  estimatedDays?: number;
 }
 
 export const createShipmentService = async (data: CreateShipmentData) => {
@@ -40,6 +42,7 @@ export const createShipmentService = async (data: CreateShipmentData) => {
     const isReadyForShipment =
       order.status === OrderStatus.PAID ||
       order.status === OrderStatus.COMPLETED ||
+      order.status === OrderStatus.SHIPPED ||
       (order.status === OrderStatus.PENDING &&
         order.payment?.status === "SUCCEEDED");
 
@@ -70,15 +73,15 @@ export const createShipmentService = async (data: CreateShipmentData) => {
         orderId: data.orderId,
         trackingNo: trackingNumber,
         courier: data.carrier,
-        cost: 0, // Default cost, can be updated later
-        estimatedDays:
-          data.method === "SAME_DAY"
+        cost: data.cost || 0, // Use provided cost or default to 0
+        estimatedDays: data.estimatedDays || 
+          (data.method === "SAME_DAY"
             ? 1
             : data.method === "EXPRESS"
             ? 2
             : data.method === "OVERNIGHT"
             ? 1
-            : 3,
+            : 3),
       },
       include: {
         order: {
