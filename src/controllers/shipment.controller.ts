@@ -166,10 +166,12 @@ export class ShipmentController {
 
       const result = {
         totalShipments,
-        shipmentsByCarrier: shipmentsByCarrier.map((item) => ({
-          carrier: item.courier,
-          count: item._count.courier,
-        })),
+        shipmentsByCarrier: shipmentsByCarrier
+          .map((item) => ({
+            carrier: item.courier,
+            count: item._count.courier,
+          }))
+          .sort((a, b) => b.count - a.count), // Sort by count descending
       };
 
       console.log("📊 getShipmentStatsController result:", result);
