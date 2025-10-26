@@ -6,10 +6,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAllOrdersService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 const getAllOrdersService = async (params) => {
-    const { status, page = 1, limit = 10, search } = params;
+    const { status, paymentStatus, page = 1, limit = 10, search } = params;
     const filter = {};
     if (status)
         filter.status = status;
+    if (paymentStatus) {
+        filter.payment = {
+            status: paymentStatus
+        };
+    }
     // Add search functionality
     if (search) {
         filter.OR = [

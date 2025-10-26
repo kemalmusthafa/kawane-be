@@ -113,10 +113,11 @@ export class OrderController {
     try {
       // Use validated query data if available, otherwise fallback to req.query
       const queryData = (req as any).validatedQuery || req.query;
-      const { status, page, limit, search } = queryData;
+      const { status, paymentStatus, page, limit, search } = queryData;
 
       const result = await getAllOrdersService({
         status: status as any,
+        paymentStatus: paymentStatus as string,
         page: page ? parseInt(page as string) : 1,
         limit: limit ? parseInt(limit as string) : 10,
         search: search as string,

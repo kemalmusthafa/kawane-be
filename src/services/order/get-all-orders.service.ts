@@ -3,16 +3,22 @@ import { OrderStatus } from "../../../prisma/generated/client";
 
 interface GetAllOrdersParams {
   status?: OrderStatus;
+  paymentStatus?: string;
   page?: number;
   limit?: number;
   search?: string;
 }
 
 export const getAllOrdersService = async (params: GetAllOrdersParams) => {
-  const { status, page = 1, limit = 10, search } = params;
+  const { status, paymentStatus, page = 1, limit = 10, search } = params;
 
   const filter: any = {};
   if (status) filter.status = status;
+  if (paymentStatus) {
+    filter.payment = {
+      status: paymentStatus
+    };
+  }
 
   // Add search functionality
   if (search) {
