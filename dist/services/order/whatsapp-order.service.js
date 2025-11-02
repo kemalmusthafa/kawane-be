@@ -9,12 +9,6 @@ const client_1 = require("../../../prisma/generated/client");
 const whatsapp_order_notification_service_1 = require("../notification/whatsapp-order-notification.service");
 const createWhatsAppOrderService = async (data) => {
     try {
-        // Debug: Log incoming WhatsApp order data
-        console.log("📱 Creating WhatsApp order with items:", data.items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            size: item.size,
-        })));
         // Validate user
         const user = await prisma_1.default.user.findUnique({
             where: { id: data.userId },

@@ -23,12 +23,8 @@ const getAllOrdersService = async (params) => {
             { user: { email: { contains: search, mode: "insensitive" } } },
         ];
     }
-    // ✅ DEBUG: Log filter for debugging
-    console.log("🔍 getAllOrdersService filter:", filter);
     const countOrders = await prisma_1.default.order.count({ where: filter });
     const totalPages = Math.ceil(countOrders / limit);
-    // ✅ DEBUG: Log count for debugging
-    console.log("📊 Total orders found:", countOrders);
     const orders = await prisma_1.default.order.findMany({
         where: filter,
         include: {
@@ -60,16 +56,6 @@ const getAllOrdersService = async (params) => {
         take: limit,
         skip: limit * (page - 1),
     });
-    // ✅ DEBUG: Log orders for debugging
-    console.log("📦 Orders retrieved:", orders.length);
-    console.log("📦 First order sample:", orders[0]
-        ? {
-            id: orders[0].id,
-            status: orders[0].status,
-            paymentStatus: orders[0].payment?.status,
-            hasShipment: !!orders[0].shipment,
-        }
-        : "No orders");
     // Transform orders to match frontend expectations
     const transformedOrders = orders.map((order) => ({
         id: order.id,

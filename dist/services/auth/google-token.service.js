@@ -19,32 +19,9 @@ const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_
 );
 const googleTokenService = async (input) => {
     const { code } = input;
-    console.log("Google Token Service - Input:", {
-        code: code.substring(0, 20) + "...",
-    });
-    console.log("Google Token Service - Client ID:", process.env.GOOGLE_CLIENT_ID ? "SET" : "NOT SET", process.env.GOOGLE_CLIENT_ID?.substring(0, 20) + "...");
-    console.log("Google Token Service - Client Secret:", process.env.GOOGLE_CLIENT_SECRET ? "SET" : "NOT SET");
-    console.log("Google Token Service - Redirect URI:", process.env.REDIRECT_URI);
-    console.log("Google Token Service - All env vars:", {
-        NODE_ENV: process.env.NODE_ENV,
-        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? "SET" : "NOT SET",
-        GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ? "SET" : "NOT SET",
-        REDIRECT_URI: process.env.REDIRECT_URI || "NOT SET",
-    });
     try {
         // Exchange authorization code for tokens
-        console.log("Exchanging authorization code for tokens...");
-        console.log("Code length:", code.length);
-        console.log("Client config:", {
-            clientId: process.env.GOOGLE_CLIENT_ID ? "SET" : "NOT SET",
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET ? "SET" : "NOT SET",
-            redirectUri: process.env.REDIRECT_URI || "NOT SET",
-        });
         const { tokens } = await client.getToken(code);
-        console.log("Tokens received:", {
-            access_token: tokens.access_token ? "SET" : "NOT SET",
-            id_token: tokens.id_token ? "SET" : "NOT SET",
-        });
         if (!tokens.id_token) {
             throw new Error("No ID token received from Google");
         }

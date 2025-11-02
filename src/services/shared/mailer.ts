@@ -4,7 +4,6 @@ import { appConfig } from "../../utils/config";
 // Create real email transporter for production
 const createRealTransporter = () => {
   if (!appConfig.MAIL_USER || !appConfig.MAIL_PASS) {
-    console.log("⚠️ Email credentials not configured, using mock service");
     return null;
   }
 
@@ -27,15 +26,6 @@ const createRealTransporter = () => {
 // Mock email transporter for development
 const mockTransporter = {
   sendMail: async (mailOptions: any) => {
-    console.log("📧 Mock Email Sent:");
-    console.log("📤 From:", mailOptions.from);
-    console.log("📥 To:", mailOptions.to);
-    console.log("📋 Subject:", mailOptions.subject);
-    console.log(
-      "🔗 Verification Link:",
-      mailOptions.html?.match(/href="([^"]+)"/)?.[1] || "Not found"
-    );
-
     // Simulate successful email sending with proper structure
     return {
       messageId: `mock-${Date.now()}@kawanestudio.com`,
@@ -50,7 +40,6 @@ const mockTransporter = {
     };
   },
   verify: (callback: (error: any, success: any) => void) => {
-    console.log("✅ Mock email transporter verified");
     callback(null, true);
   },
 };
@@ -60,17 +49,10 @@ const realTransporter = createRealTransporter();
 export const transporter = realTransporter || mockTransporter;
 
 if (realTransporter) {
-  console.log("📧 Using Real Email Service (Gmail SMTP)");
-  console.log("📤 Email User:", appConfig.MAIL_USER);
-
   // Verify connection
   realTransporter.verify((error: any, success: any) => {
     if (error) {
-      console.error("❌ Email transporter verification failed:", error);
-    } else {
-      console.log("✅ Email transporter verified successfully");
+      console.error("Email transporter verification failed:", error);
     }
   });
-} else {
-  console.log("📧 Using Mock Email Service for development");
 }

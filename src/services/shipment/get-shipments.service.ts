@@ -24,10 +24,6 @@ export const getShipmentsService = async (input: GetShipmentsInput) => {
       endDate,
     } = input;
 
-    console.log("🔍 getShipmentsService input:", input);
-    console.log("🔍 getShipmentsService userId:", userId);
-    console.log("🔍 getShipmentsService isAdmin:", !userId);
-
     const skip = (page - 1) * limit;
 
     // Build where clause
@@ -65,8 +61,6 @@ export const getShipmentsService = async (input: GetShipmentsInput) => {
         lte: new Date(endDate),
       };
     }
-
-    console.log("🔍 getShipmentsService where clause:", where);
 
     // Get shipments with pagination
     const [shipments, total] = await Promise.all([
@@ -148,11 +142,6 @@ export const getShipmentsService = async (input: GetShipmentsInput) => {
         hasPrevPage,
       },
     };
-
-    console.log("📦 getShipmentsService returning result:", {
-      shipmentsCount: result.shipments.length,
-      pagination: result.pagination,
-    });
 
     return result;
   } catch (error: any) {

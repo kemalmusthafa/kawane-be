@@ -30,16 +30,6 @@ interface WhatsAppOrderData {
 
 export const createWhatsAppOrderService = async (data: WhatsAppOrderData) => {
   try {
-    // Debug: Log incoming WhatsApp order data
-    console.log(
-      "📱 Creating WhatsApp order with items:",
-      data.items.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        size: item.size,
-      }))
-    );
-
     // Validate user
     const user = await prisma.user.findUnique({
       where: { id: data.userId },

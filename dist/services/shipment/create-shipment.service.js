@@ -24,11 +24,6 @@ const createShipmentService = async (data) => {
         if (!order) {
             throw new Error("Order not found");
         }
-        console.log("🔍 createShipmentService order found:", {
-            id: order.id,
-            status: order.status,
-            paymentStatus: order.payment?.status,
-        });
         // ✅ FIXED: More flexible order status validation using enum
         const isReadyForShipment = order.status === client_1.OrderStatus.PAID ||
             order.status === client_1.OrderStatus.COMPLETED ||
@@ -36,11 +31,6 @@ const createShipmentService = async (data) => {
             (order.status === client_1.OrderStatus.PENDING &&
                 order.payment?.status === "SUCCEEDED");
         if (!isReadyForShipment) {
-            console.log("❌ Order not ready for shipment:", {
-                orderId: order.id,
-                status: order.status,
-                paymentStatus: order.payment?.status,
-            });
             throw new Error("Order is not ready for shipment");
         }
         // Check if shipment already exists for this order

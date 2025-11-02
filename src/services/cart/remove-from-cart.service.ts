@@ -8,9 +8,6 @@ interface RemoveFromCartData {
 export const removeFromCartService = async (data: RemoveFromCartData) => {
   const { userId, cartItemId } = data;
 
-  // Debug: Log the request
-  console.log("🗑️ Remove from cart request:", { userId, cartItemId });
-
   // Verify user exists
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -31,10 +28,8 @@ export const removeFromCartService = async (data: RemoveFromCartData) => {
     },
   });
 
-  console.log("🔍 Cart item lookup result:", cartItem ? "Found" : "Not found");
 
   if (!cartItem) {
-    console.log("❌ Cart item not found for ID:", cartItemId);
     throw new Error("Cart item not found");
   }
 

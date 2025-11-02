@@ -8,9 +8,6 @@ const prisma_1 = __importDefault(require("../../prisma"));
 const getShipmentsService = async (input) => {
     try {
         const { userId, orderId, status, carrier, page = 1, limit = 10, startDate, endDate, } = input;
-        console.log("🔍 getShipmentsService input:", input);
-        console.log("🔍 getShipmentsService userId:", userId);
-        console.log("🔍 getShipmentsService isAdmin:", !userId);
         const skip = (page - 1) * limit;
         // Build where clause
         const where = {};
@@ -45,7 +42,6 @@ const getShipmentsService = async (input) => {
                 lte: new Date(endDate),
             };
         }
-        console.log("🔍 getShipmentsService where clause:", where);
         // Get shipments with pagination
         const [shipments, total] = await Promise.all([
             prisma_1.default.shipment.findMany({
@@ -120,10 +116,6 @@ const getShipmentsService = async (input) => {
                 hasPrevPage,
             },
         };
-        console.log("📦 getShipmentsService returning result:", {
-            shipmentsCount: result.shipments.length,
-            pagination: result.pagination,
-        });
         return result;
     }
     catch (error) {

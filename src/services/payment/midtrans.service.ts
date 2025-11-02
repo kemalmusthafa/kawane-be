@@ -36,34 +36,11 @@ export interface MidtransPaymentData {
 export class MidtransService {
   static async createPayment(data: MidtransPaymentData) {
     try {
-      // Debug logging
-      console.log("=== MIDTRANS DEBUG ===");
-      console.log(
-        "MIDTRANS_SERVER_KEY:",
-        appConfig.MIDTRANS_SERVER_KEY ? "SET" : "NOT SET"
-      );
-      console.log(
-        "MIDTRANS_CLIENT_KEY:",
-        appConfig.MIDTRANS_CLIENT_KEY ? "SET" : "NOT SET"
-      );
-      console.log("MIDTRANS_IS_PRODUCTION:", appConfig.MIDTRANS_IS_PRODUCTION);
-      console.log("Order ID:", data.orderId);
-      console.log("Amount:", data.amount);
-      console.log(
-        "Customer Details:",
-        JSON.stringify(data.customerDetails, null, 2)
-      );
-      console.log("Item Details:", JSON.stringify(data.itemDetails, null, 2));
-      console.log("=====================");
-
       // Check if Midtrans keys are configured
       if (
         !appConfig.MIDTRANS_SERVER_KEY ||
         appConfig.MIDTRANS_SERVER_KEY === "SB-Mid-server-your-server-key"
       ) {
-        console.warn(
-          "Midtrans server key not configured, returning mock payment URL"
-        );
         return {
           token: "mock-token-" + Date.now(),
           redirectUrl:

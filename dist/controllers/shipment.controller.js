@@ -56,22 +56,12 @@ class ShipmentController {
             const user = req.user;
             const userRole = user?.role;
             const userId = user?.id;
-            console.log("🔍 getShipmentsController called with:", {
-                queryData,
-                userId,
-                userRole,
-                isAdmin: userRole === "ADMIN" || userRole === "STAFF",
-            });
             // For admin/staff: don't pass userId (see all shipments)
             // For customer: pass userId (see only their shipments)
             const serviceUserId = userRole === "ADMIN" || userRole === "STAFF" ? undefined : userId;
             const result = await (0, get_shipments_service_1.getShipmentsService)({
                 ...queryData,
                 userId: serviceUserId, // Admin sees all, Customer sees only their own
-            });
-            console.log("📦 getShipmentsController result:", {
-                shipmentsCount: result.shipments.length,
-                total: result.pagination.total,
             });
             (0, async_handler_middleware_1.successResponse)(res, result, "Shipments retrieved successfully");
         }
@@ -112,10 +102,6 @@ class ShipmentController {
         try {
             const queryData = req.validatedQuery || req.query;
             const { startDate, endDate } = queryData;
-            console.log("🔍 getShipmentStatsController called with:", {
-                startDate,
-                endDate,
-            });
             // Build date filter
             const dateFilter = {};
             if (startDate && endDate) {
@@ -124,17 +110,14 @@ class ShipmentController {
                     lte: new Date(endDate),
                 };
             }
-            console.log("🔍 getShipmentStatsController dateFilter:", dateFilter);
             // Optimize: Use single query with aggregation instead of Promise.all
             const shipmentsByCarrier = await prisma_1.default.shipment.groupBy({
                 by: ["courier"],
                 where: dateFilter,
                 _count: { courier: true },
             });
-            console.log("📊 getShipmentStatsController shipmentsByCarrier:", shipmentsByCarrier);
             // Calculate total from grouped results to avoid second query
             const totalShipments = shipmentsByCarrier.reduce((total, item) => total + item._count.courier, 0);
-            console.log("📊 getShipmentStatsController totalShipments:", totalShipments);
             const result = {
                 totalShipments,
                 shipmentsByCarrier: shipmentsByCarrier
@@ -144,7 +127,6 @@ class ShipmentController {
                 }))
                     .sort((a, b) => b.count - a.count), // Sort by count descending
             };
-            console.log("📊 getShipmentStatsController result:", result);
             (0, async_handler_middleware_1.successResponse)(res, result, "Shipment statistics retrieved successfully");
         }
         catch (error) {
