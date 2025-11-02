@@ -794,6 +794,44 @@ export const updateCategorySchema = z.object({
   image: z.string().min(1, "Image URL cannot be empty").optional(),
 });
 
+// ========================================
+// 🎨 BANNER VALIDATION SCHEMAS
+// ========================================
+export const bannerIdParamSchema = z.object({
+  bannerId: z.string().uuid("Invalid banner ID"),
+});
+
+export const createBannerSchema = z.object({
+  text: z
+    .string()
+    .min(1, "Banner text is required")
+    .max(500, "Banner text cannot exceed 500 characters"),
+  isActive: z.boolean().optional().default(true),
+  backgroundColor: z.string().max(100).optional().nullable(),
+  textColor: z.string().max(100).optional().nullable(),
+  linkUrl: z.string().url("Invalid URL format").optional().nullable(),
+  linkText: z.string().max(100).optional().nullable(),
+  dealId: z.string().uuid("Invalid deal ID").optional().nullable(),
+  priority: z.number().int().min(1).max(10).optional().default(1),
+  duration: z.number().int().min(1).optional().nullable(),
+});
+
+export const updateBannerSchema = z.object({
+  text: z
+    .string()
+    .min(1, "Banner text cannot be empty")
+    .max(500, "Banner text cannot exceed 500 characters")
+    .optional(),
+  isActive: z.boolean().optional(),
+  backgroundColor: z.string().max(100).optional().nullable(),
+  textColor: z.string().max(100).optional().nullable(),
+  linkUrl: z.string().url("Invalid URL format").optional().nullable(),
+  linkText: z.string().max(100).optional().nullable(),
+  dealId: z.string().uuid("Invalid deal ID").optional().nullable(),
+  priority: z.number().int().min(1).max(10).optional(),
+  duration: z.number().int().min(1).optional().nullable(),
+});
+
 export const categoryQuerySchema = z.object({
   page: z.string().regex(/^\d+$/).transform(Number).optional(),
   limit: z.string().regex(/^\d+$/).transform(Number).optional(),
@@ -1017,6 +1055,7 @@ export const validationSchemas = {
   orderIdParam: orderIdParamSchema,
   paymentIdParam: paymentIdParamSchema,
   categoryIdParam: categoryIdParamSchema,
+  bannerIdParam: bannerIdParamSchema,
 
   // Common
   pagination: paginationSchema,
@@ -1041,6 +1080,10 @@ export const validationSchemas = {
   createCategory: createCategorySchema,
   updateCategory: updateCategorySchema,
   categoryQuery: categoryQuerySchema,
+
+  // Banner
+  createBanner: createBannerSchema,
+  updateBanner: updateBannerSchema,
 
   // Analytics
   analyticsQuery: analyticsQuerySchema,

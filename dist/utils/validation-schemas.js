@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.categoryQuerySchema = exports.updateCategorySchema = exports.createCategorySchema = exports.trackingNumberParamSchema = exports.shipmentIdParamSchema = exports.shipmentQuerySchema = exports.updateShipmentSchema = exports.createShipmentSchema = exports.flashSaleNotificationSchema = exports.wishlistNotificationSchema = exports.productLaunchNotificationSchema = exports.lowStockQuerySchema = exports.createInventoryLogSchema = exports.inventoryLogQuerySchema = exports.createStaffSchema = exports.createAdminSchema = exports.paginationSchema = exports.categoryIdParamSchema = exports.paymentIdParamSchema = exports.orderIdParamSchema = exports.productIdParamSchema = exports.idParamSchema = exports.toggleWishlistSchema = exports.createReviewSchema = exports.dashboardQuerySchema = exports.markAsReadSchema = exports.notificationQuerySchema = exports.updatePaymentStatusSchema = exports.createPaymentSchema = exports.createAddressSchema = exports.updateWhatsAppOrderStatusSchema = exports.createWhatsAppOrderSchema = exports.orderQuerySchema = exports.updateOrderStatusSchema = exports.createOrderSchema = exports.cartItemIdParamSchema = exports.updateCartItemSchema = exports.addDealToCartSchema = exports.addToCartSchema = exports.productQuerySchema = exports.updateProductSchema = exports.createProductSchema = exports.userQuerySchema = exports.updateUserSchema = exports.createUserSchema = exports.googleTokenSchema = exports.resetPasswordSchema = exports.forgotPasswordSchema = exports.loginSchema = exports.registerSchema = void 0;
-exports.validationSchemas = exports.updateSettingsSchema = exports.dealIdParamSchema = exports.dealQuerySchema = exports.updateDealSchema = exports.createDealSchema = exports.reportIdParamSchema = exports.generateReportSchema = exports.reportsQuerySchema = exports.analyticsQuerySchema = void 0;
+exports.bannerIdParamSchema = exports.updateCategorySchema = exports.createCategorySchema = exports.trackingNumberParamSchema = exports.shipmentIdParamSchema = exports.shipmentQuerySchema = exports.updateShipmentSchema = exports.createShipmentSchema = exports.flashSaleNotificationSchema = exports.wishlistNotificationSchema = exports.productLaunchNotificationSchema = exports.lowStockQuerySchema = exports.createInventoryLogSchema = exports.inventoryLogQuerySchema = exports.createStaffSchema = exports.createAdminSchema = exports.paginationSchema = exports.categoryIdParamSchema = exports.paymentIdParamSchema = exports.orderIdParamSchema = exports.productIdParamSchema = exports.idParamSchema = exports.toggleWishlistSchema = exports.createReviewSchema = exports.dashboardQuerySchema = exports.markAsReadSchema = exports.notificationQuerySchema = exports.updatePaymentStatusSchema = exports.createPaymentSchema = exports.createAddressSchema = exports.updateWhatsAppOrderStatusSchema = exports.createWhatsAppOrderSchema = exports.orderQuerySchema = exports.updateOrderStatusSchema = exports.createOrderSchema = exports.cartItemIdParamSchema = exports.updateCartItemSchema = exports.addDealToCartSchema = exports.addToCartSchema = exports.productQuerySchema = exports.updateProductSchema = exports.createProductSchema = exports.userQuerySchema = exports.updateUserSchema = exports.createUserSchema = exports.googleTokenSchema = exports.resetPasswordSchema = exports.forgotPasswordSchema = exports.loginSchema = exports.registerSchema = void 0;
+exports.validationSchemas = exports.updateSettingsSchema = exports.dealIdParamSchema = exports.dealQuerySchema = exports.updateDealSchema = exports.createDealSchema = exports.reportIdParamSchema = exports.generateReportSchema = exports.reportsQuerySchema = exports.analyticsQuerySchema = exports.categoryQuerySchema = exports.updateBannerSchema = exports.createBannerSchema = void 0;
 const zod_1 = require("zod");
 // ========================================
 // 🔐 AUTHENTICATION VALIDATION SCHEMAS
@@ -655,6 +655,41 @@ exports.updateCategorySchema = zod_1.z.object({
         .optional(),
     image: zod_1.z.string().min(1, "Image URL cannot be empty").optional(),
 });
+// ========================================
+// 🎨 BANNER VALIDATION SCHEMAS
+// ========================================
+exports.bannerIdParamSchema = zod_1.z.object({
+    bannerId: zod_1.z.string().uuid("Invalid banner ID"),
+});
+exports.createBannerSchema = zod_1.z.object({
+    text: zod_1.z
+        .string()
+        .min(1, "Banner text is required")
+        .max(500, "Banner text cannot exceed 500 characters"),
+    isActive: zod_1.z.boolean().optional().default(true),
+    backgroundColor: zod_1.z.string().max(100).optional().nullable(),
+    textColor: zod_1.z.string().max(100).optional().nullable(),
+    linkUrl: zod_1.z.string().url("Invalid URL format").optional().nullable(),
+    linkText: zod_1.z.string().max(100).optional().nullable(),
+    dealId: zod_1.z.string().uuid("Invalid deal ID").optional().nullable(),
+    priority: zod_1.z.number().int().min(1).max(10).optional().default(1),
+    duration: zod_1.z.number().int().min(1).optional().nullable(),
+});
+exports.updateBannerSchema = zod_1.z.object({
+    text: zod_1.z
+        .string()
+        .min(1, "Banner text cannot be empty")
+        .max(500, "Banner text cannot exceed 500 characters")
+        .optional(),
+    isActive: zod_1.z.boolean().optional(),
+    backgroundColor: zod_1.z.string().max(100).optional().nullable(),
+    textColor: zod_1.z.string().max(100).optional().nullable(),
+    linkUrl: zod_1.z.string().url("Invalid URL format").optional().nullable(),
+    linkText: zod_1.z.string().max(100).optional().nullable(),
+    dealId: zod_1.z.string().uuid("Invalid deal ID").optional().nullable(),
+    priority: zod_1.z.number().int().min(1).max(10).optional(),
+    duration: zod_1.z.number().int().min(1).optional().nullable(),
+});
 exports.categoryQuerySchema = zod_1.z.object({
     page: zod_1.z.string().regex(/^\d+$/).transform(Number).optional(),
     limit: zod_1.z.string().regex(/^\d+$/).transform(Number).optional(),
@@ -847,6 +882,7 @@ exports.validationSchemas = {
     orderIdParam: exports.orderIdParamSchema,
     paymentIdParam: exports.paymentIdParamSchema,
     categoryIdParam: exports.categoryIdParamSchema,
+    bannerIdParam: exports.bannerIdParamSchema,
     // Common
     pagination: exports.paginationSchema,
     // Admin
@@ -866,6 +902,9 @@ exports.validationSchemas = {
     createCategory: exports.createCategorySchema,
     updateCategory: exports.updateCategorySchema,
     categoryQuery: exports.categoryQuerySchema,
+    // Banner
+    createBanner: exports.createBannerSchema,
+    updateBanner: exports.updateBannerSchema,
     // Analytics
     analyticsQuery: exports.analyticsQuerySchema,
     // Reports

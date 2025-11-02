@@ -34,6 +34,7 @@ import { CustomerNotificationRouter } from "./routers/customer-notification.rout
 import { ShipmentRouter } from "./routers/shipment.router";
 import { CartRouter } from "./routers/cart.router";
 import { CategoryRouter } from "./routers/category.router";
+import { BannerRouter } from "./routers/banner.router";
 import { DealRouter } from "./routers/deal.router";
 import dealExpirationRouter from "./routers/deal-expiration.router";
 // Development router only in development mode
@@ -273,6 +274,7 @@ const customerNotificationRouter = new CustomerNotificationRouter();
 const shipmentRouter = new ShipmentRouter();
 const cartRouter = new CartRouter();
 const categoryRouter = new CategoryRouter();
+const bannerRouter = new BannerRouter();
 const dealRouter = new DealRouter();
 const adminToolsRouter = new AdminToolsRouter();
 const analyticsRouter = new AnalyticsRouter();
@@ -297,6 +299,7 @@ app.use("/api/customer-notifications", customerNotificationRouter.getRouter());
 app.use("/api/shipments", shipmentRouter.getRouter());
 app.use("/api/cart", cartRouter.getRouter());
 app.use("/api/categories", categoryRouter.getRouter());
+app.use("/api/banners", bannerRouter.getRouter());
 app.use("/api/deals", dealRouter.getRouter());
 app.use("/api/deals", dealExpirationRouter);
 // Admin tools - production-ready admin utilities with authentication

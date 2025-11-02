@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createDealService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 const createDealService = async (data) => {
-    const { title, description, type, value, startDate, endDate, image, images = [], isFlashSale = false, maxUses, productName, productDescription, productPrice, productSku, productStock = 0, categoryId, } = data;
+    const { title, description, type, value, startDate, endDate, image, images = [], isFlashSale = false, maxUses, productName, productDescription, productPrice, productSku, productStock = 0, categoryId, sizes = [], } = data;
     // Handle empty image string
     const imageUrl = image && image.trim() ? image.trim() : undefined;
     // Validate dates
@@ -72,13 +72,17 @@ const createDealService = async (data) => {
         else if (type === "FIXED_AMOUNT") {
             discountedPrice = Math.max(0, productPrice - value);
         }
+        // Calculate total stock from sizes if provided, otherwise use productStock
+        const calculatedStock = sizes.length > 0
+            ? sizes.reduce((total, sizeItem) => total + (sizeItem.stock || 0), 0)
+            : productStock;
         // Create product for the deal
         const dealProduct = await tx.product.create({
             data: {
                 name: productName,
                 description: productDescription || `🎉 DEAL SPECIAL: ${title}`,
                 price: discountedPrice,
-                stock: productStock,
+                stock: calculatedStock,
                 sku: productSku || `DEAL-${newDeal.id.slice(-8)}`,
                 categoryId,
                 status: "ACTIVE",
@@ -87,10 +91,21 @@ const createDealService = async (data) => {
                         create: images.map((url) => ({ url })),
                     }
                     : undefined,
+                sizes: sizes.length > 0
+                    ? {
+                        create: sizes
+                            .filter((s) => s.size && s.size.trim() !== "")
+                            .map((sizeItem) => ({
+                            size: sizeItem.size.trim().toUpperCase(),
+                            stock: sizeItem.stock || 0,
+                        })),
+                    }
+                    : undefined,
             },
             include: {
                 images: true,
                 category: true,
+                sizes: true,
             },
         });
         // Create DealProduct relationship
@@ -101,11 +116,11 @@ const createDealService = async (data) => {
             },
         });
         // Create inventory log for initial stock
-        if (productStock > 0) {
+        if (calculatedStock > 0) {
             await tx.inventoryLog.create({
                 data: {
                     productId: dealProduct.id,
-                    change: productStock,
+                    change: calculatedStock,
                     note: "Initial stock for deal product",
                 },
             });

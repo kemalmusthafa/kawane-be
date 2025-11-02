@@ -74,7 +74,8 @@ export const createShipmentService = async (data: CreateShipmentData) => {
         trackingNo: trackingNumber,
         courier: data.carrier,
         cost: data.cost || 0, // Use provided cost or default to 0
-        estimatedDays: data.estimatedDays || 
+        estimatedDays:
+          data.estimatedDays ||
           (data.method === "SAME_DAY"
             ? 1
             : data.method === "EXPRESS"

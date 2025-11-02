@@ -69,6 +69,7 @@ const customer_notification_router_1 = require("./routers/customer-notification.
 const shipment_router_1 = require("./routers/shipment.router");
 const cart_router_1 = require("./routers/cart.router");
 const category_router_1 = require("./routers/category.router");
+const banner_router_1 = require("./routers/banner.router");
 const deal_router_1 = require("./routers/deal.router");
 const deal_expiration_router_1 = __importDefault(require("./routers/deal-expiration.router"));
 // Development router only in development mode
@@ -271,6 +272,7 @@ const customerNotificationRouter = new customer_notification_router_1.CustomerNo
 const shipmentRouter = new shipment_router_1.ShipmentRouter();
 const cartRouter = new cart_router_1.CartRouter();
 const categoryRouter = new category_router_1.CategoryRouter();
+const bannerRouter = new banner_router_1.BannerRouter();
 const dealRouter = new deal_router_1.DealRouter();
 const adminToolsRouter = new dev_router_1.AdminToolsRouter();
 const analyticsRouter = new analytics_router_1.AnalyticsRouter();
@@ -294,6 +296,7 @@ app.use("/api/customer-notifications", customerNotificationRouter.getRouter());
 app.use("/api/shipments", shipmentRouter.getRouter());
 app.use("/api/cart", cartRouter.getRouter());
 app.use("/api/categories", categoryRouter.getRouter());
+app.use("/api/banners", bannerRouter.getRouter());
 app.use("/api/deals", dealRouter.getRouter());
 app.use("/api/deals", deal_expiration_router_1.default);
 // Admin tools - production-ready admin utilities with authentication
