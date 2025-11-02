@@ -17,6 +17,7 @@ export const getDealByIdService = async (params: GetDealByIdParams) => {
             include: {
               images: true,
               category: true,
+              sizes: true,
             },
           },
         },
