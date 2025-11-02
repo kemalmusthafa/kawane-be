@@ -7,13 +7,13 @@ async function main() {
   console.log("🌱 Starting user seeding...");
 
   // Create Admin User
-  const adminPassword = await hash("Admin123!", 10);
+  const adminPassword = await hash("kawanestudiopassword@1921", 10);
   const admin = await prisma.user.upsert({
-    where: { email: "admin@kawane.com" },
+    where: { email: "kawane.studio1921@gmail.com" },
     update: {},
     create: {
-      name: "Admin Kawane",
-      email: "admin@kawane.com",
+      name: "Admin Kawane Studio",
+      email: "kawane.studio1921@gmail.com",
       password: adminPassword,
       role: "ADMIN",
       isVerified: true,
@@ -107,7 +107,7 @@ async function main() {
 
   console.log("✅ User seeding completed successfully!");
   console.log("\n📋 Created Users:");
-  console.log(`👑 Admin: admin@kawane.com (password: Admin123!)`);
+  console.log(`👑 Admin: kawane.studio1921@gmail.com (password: kawanestudiopassword@1921)`);
   console.log(`👨‍💼 Staff: staff@kawane.com (password: Staff123!)`);
   console.log(`👤 Customer: customer@kawane.com (password: Customer123!)`);
   console.log(`👤 Customer: john@example.com (password: Customer123!)`);
