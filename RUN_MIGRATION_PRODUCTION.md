@@ -9,12 +9,18 @@ Error muncul di:
 
 ## Migration yang Perlu Dijalankan
 
-File migration: `prisma/migrations/20251103190000_add_order_item_size/migration.sql`
-
-Isi migration:
+### Migration 1: OrderItem.size
+File: `prisma/migrations/20251103190000_add_order_item_size/migration.sql`
 ```sql
 -- AlterTable
 ALTER TABLE "OrderItem" ADD COLUMN "size" TEXT;
+```
+
+### Migration 2: Address.isDefault
+File: `prisma/migrations/20251103200000_add_address_is_default/migration.sql`
+```sql
+-- AlterTable
+ALTER TABLE "Address" ADD COLUMN "isDefault" BOOLEAN NOT NULL DEFAULT false;
 ```
 
 ## Cara Menjalankan (Pilih Salah Satu)
@@ -22,9 +28,13 @@ ALTER TABLE "OrderItem" ADD COLUMN "size" TEXT;
 ### Opsi 1: Via Supabase Dashboard (Paling Mudah)
 1. Buka Supabase Dashboard → Project Anda
 2. Buka **SQL Editor**
-3. Copy dan paste SQL berikut:
+3. Copy dan paste SQL berikut (jalankan kedua query):
    ```sql
+   -- Migration 1: OrderItem.size
    ALTER TABLE "OrderItem" ADD COLUMN "size" TEXT;
+   
+   -- Migration 2: Address.isDefault
+   ALTER TABLE "Address" ADD COLUMN "isDefault" BOOLEAN NOT NULL DEFAULT false;
    ```
 4. Klik **Run** atau **Execute**
 5. Selesai! Migration sudah dijalankan
@@ -55,8 +65,11 @@ npx prisma migrate deploy
 ## Verifikasi
 Setelah migration berhasil, pastikan:
 - Column `size` ada di table `OrderItem` di database
+- Column `isDefault` ada di table `Address` di database
 - API `/api/best-sellers` tidak error lagi
+- API `/api/orders` (checkout) tidak error lagi
 - Tidak ada error "OrderItem.size does not exist"
+- Tidak ada error "Address.isDefault does not exist"
 
 ## Catatan
 - Migration ini hanya menambahkan column, tidak menghapus data
