@@ -1,19 +1,6 @@
-import prisma from "../../prisma";
+// Banner feature removed - file kept for reference
+// This service is disabled
 
-export const deleteBannerService = async (bannerId: string) => {
-  // Check if banner exists
-  const existingBanner = await prisma.banner.findUnique({
-    where: { id: bannerId },
-  });
-
-  if (!existingBanner) {
-    throw new Error("Banner not found");
-  }
-
-  await prisma.banner.delete({
-    where: { id: bannerId },
-  });
-
-  return { success: true };
+export const deleteBannerService = async (id: string) => {
+  throw new Error("Banner feature has been removed");
 };
-
