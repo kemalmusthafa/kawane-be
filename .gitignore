@@ -113,7 +113,7 @@ Thumbs.db
 
 # Prisma specific
 prisma/generated/
-prisma/migrations/
+# prisma/migrations/ - Migration files MUST be committed to git
 *.db
 *.db-journal
 
