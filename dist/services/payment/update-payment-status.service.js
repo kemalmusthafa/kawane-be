@@ -53,11 +53,44 @@ const updatePaymentStatusService = async (data) => {
             where: { id: payment.orderId },
             data: { status: orderStatus },
         });
+        // ✅ Reduce stock when payment is SUCCEEDED
+        if (data.status === client_1.PaymentStatus.SUCCEEDED &&
+            payment.status !== client_1.PaymentStatus.SUCCEEDED) {
+            // Reduce stock for all items in the order
+            for (const item of updatedPaymentResult.order.items) {
+                // Decrement size-specific stock if size is provided
+                if (item.size) {
+                    await tx.productSize.updateMany({
+                        where: {
+                            productId: item.productId,
+                            size: item.size,
+                        },
+                        data: {
+                            stock: { decrement: item.quantity },
+                        },
+                    });
+                }
+                // Always decrement general product stock
+                await tx.product.update({
+                    where: { id: item.productId },
+                    data: { stock: { decrement: item.quantity } },
+                });
+                // Create inventory log
+                await tx.inventoryLog.create({
+                    data: {
+                        productId: item.productId,
+                        change: -item.quantity,
+                        note: `Order ${payment.orderId}: Sale (Payment confirmed)${item.size ? ` (Size: ${item.size})` : ""}`,
+                    },
+                });
+            }
+        }
         // 🔄 Handle stock restoration for failed payments
         if ((data.status === client_1.PaymentStatus.CANCELLED ||
             data.status === client_1.PaymentStatus.EXPIRED) &&
-            payment.status !== data.status) {
-            // Restore stock for all items in the cancelled order
+            payment.status !== data.status &&
+            payment.status === client_1.PaymentStatus.SUCCEEDED) {
+            // Restore stock for all items in the cancelled order (only if payment was previously succeeded)
             for (const item of updatedPaymentResult.order.items) {
                 await tx.product.update({
                     where: { id: item.productId },
