@@ -7,12 +7,15 @@ Database production di Vercel tidak memiliki:
 
 ## Solusi
 
-### Opsi 1: Via Vercel Dashboard (Recommended)
+### Opsi 1: Redeploy di Vercel (Paling Mudah)
 1. Buka Vercel Dashboard → Project `kawane-be`
-2. Buka tab **Settings** → **Environment Variables**
-3. Pastikan `DATABASE_URL` dan `DIRECT_URL` sudah di-set dengan benar
-4. Buka tab **Deployments** → Klik **Redeploy** pada deployment terbaru
-5. Atau buat deployment baru dengan trigger dari GitHub
+2. Buka tab **Settings** → **Build & Development Settings**
+3. Set **Build Command** ke: `npm run build:linux && npx prisma migrate deploy`
+4. Atau update **Build Command** di Vercel dashboard dengan: `npm run vercel-build` (sudah include migration)
+5. Buka tab **Deployments** → Klik **Redeploy** pada deployment terbaru
+6. Migration akan otomatis dijalankan saat build
+
+**CATATAN PENTING:** Pastikan environment variable `DATABASE_URL` dan `DIRECT_URL` sudah di-set di Vercel!
 
 ### Opsi 2: Via Vercel CLI (Manual Migration)
 Jalankan command berikut (perlu install Vercel CLI terlebih dahulu):
