@@ -1,0 +1,65 @@
+# Cara Menjalankan Migration di Production Database
+
+## Error yang Terjadi
+Database production di Vercel tidak memiliki:
+1. Column `size` di table `OrderItem` 
+
+Error muncul di:
+- `/api/best-sellers` - "The column `OrderItem.size` does not exist in the current database"
+
+## Migration yang Perlu Dijalankan
+
+File migration: `prisma/migrations/20251103190000_add_order_item_size/migration.sql`
+
+Isi migration:
+```sql
+-- AlterTable
+ALTER TABLE "OrderItem" ADD COLUMN "size" TEXT;
+```
+
+## Cara Menjalankan (Pilih Salah Satu)
+
+### Opsi 1: Via Supabase Dashboard (Paling Mudah)
+1. Buka Supabase Dashboard → Project Anda
+2. Buka **SQL Editor**
+3. Copy dan paste SQL berikut:
+   ```sql
+   ALTER TABLE "OrderItem" ADD COLUMN "size" TEXT;
+   ```
+4. Klik **Run** atau **Execute**
+5. Selesai! Migration sudah dijalankan
+
+### Opsi 2: Via Prisma Studio
+1. Pastikan `.env` sudah di-set dengan `DATABASE_URL` production
+2. Run: `npx prisma studio`
+3. Atau run langsung: `npx prisma migrate deploy`
+
+### Opsi 3: Via Vercel CLI
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Login
+vercel login
+
+# Link project
+vercel link
+
+# Pull env
+vercel env pull .env.production
+
+# Run migration
+npx prisma migrate deploy
+```
+
+## Verifikasi
+Setelah migration berhasil, pastikan:
+- Column `size` ada di table `OrderItem` di database
+- API `/api/best-sellers` tidak error lagi
+- Tidak ada error "OrderItem.size does not exist"
+
+## Catatan
+- Migration ini hanya menambahkan column, tidak menghapus data
+- Column `size` adalah nullable (boleh NULL), jadi data existing tidak terpengaruh
+- Format migration sudah sesuai standar Prisma (tanpa `public.` schema prefix)
+
