@@ -89,3 +89,16 @@ BEGIN
     END IF;
 END $$;
 
+-- Migration 4: Order.adminNotes (jika belum ada)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_name = 'Order' 
+        AND column_name = 'adminNotes'
+    ) THEN
+        ALTER TABLE "Order" ADD COLUMN "adminNotes" TEXT;
+    END IF;
+END $$;
+

@@ -81,6 +81,23 @@ async function runMigration() {
       console.log('   ✓ Unique index already exists');
     }
 
+    // Migration 4: Order.adminNotes
+    console.log('\n📝 Checking Order.adminNotes column...');
+    const adminNotesExists = await prisma.$queryRaw`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'Order' 
+      AND column_name = 'adminNotes'
+    `;
+
+    if (adminNotesExists.length === 0) {
+      console.log('   → Adding Order.adminNotes column...');
+      await prisma.$executeRaw`ALTER TABLE "Order" ADD COLUMN "adminNotes" TEXT;`;
+      console.log('   ✅ Order.adminNotes column added successfully!');
+    } else {
+      console.log('   ✓ Order.adminNotes column already exists');
+    }
+
     console.log('\n✨ Migration completed successfully!');
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
