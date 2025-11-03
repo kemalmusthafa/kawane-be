@@ -66,6 +66,7 @@ const updatePaymentStatusManualService = async (data) => {
         });
         // ✅ Reduce stock when payment is SUCCEEDED
         if (data.status === client_1.PaymentStatus.SUCCEEDED &&
+            order.payment &&
             order.payment.status !== client_1.PaymentStatus.SUCCEEDED) {
             // Reduce stock for all items in the order
             for (const item of updatedPaymentResult.order.items) {
@@ -99,6 +100,7 @@ const updatePaymentStatusManualService = async (data) => {
         // 🔄 Handle stock restoration for failed payments
         if ((data.status === client_1.PaymentStatus.CANCELLED ||
             data.status === client_1.PaymentStatus.EXPIRED) &&
+            order.payment &&
             order.payment.status !== data.status &&
             order.payment.status === client_1.PaymentStatus.SUCCEEDED) {
             // Restore stock for all items in the cancelled order (only if payment was previously succeeded)

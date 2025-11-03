@@ -73,6 +73,7 @@ export const updatePaymentStatusManualService = async (
     // ✅ Reduce stock when payment is SUCCEEDED
     if (
       data.status === PaymentStatus.SUCCEEDED &&
+      order.payment &&
       order.payment.status !== PaymentStatus.SUCCEEDED
     ) {
       // Reduce stock for all items in the order
@@ -113,6 +114,7 @@ export const updatePaymentStatusManualService = async (
     if (
       (data.status === PaymentStatus.CANCELLED ||
         data.status === PaymentStatus.EXPIRED) &&
+      order.payment &&
       order.payment.status !== data.status &&
       order.payment.status === PaymentStatus.SUCCEEDED
     ) {

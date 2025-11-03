@@ -147,30 +147,8 @@ const createOrderService = async (data) => {
             },
         });
         for (const item of data.items) {
-            // Decrement size-specific stock if size is provided
-            if (item.size) {
-                await tx.productSize.updateMany({
-                    where: {
-                        productId: item.productId,
-                        size: item.size,
-                    },
-                    data: {
-                        stock: { decrement: item.quantity },
-                    },
-                });
-            }
-            // Always decrement general product stock
-            await tx.product.update({
-                where: { id: item.productId },
-                data: { stock: { decrement: item.quantity } },
-            });
-            await tx.inventoryLog.create({
-                data: {
-                    productId: item.productId,
-                    change: -item.quantity,
-                    note: `Order ${newOrder.id}: Sale${item.size ? ` (Size: ${item.size})` : ""}`,
-                },
-            });
+            // NOTE: Stock reduction is now handled when payment is confirmed (SUCCEEDED)
+            // This prevents stock from being reduced for unpaid orders
         }
         // Create notification for admin about new order
         const adminUsers = await tx.user.findMany({
