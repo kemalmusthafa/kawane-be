@@ -1,5 +1,6 @@
 {
     "version": 2,
+    "buildCommand": "npm run vercel-build",
     "builds": [
         {
             "src": "dist/index.js",
@@ -7,7 +8,9 @@
             "config": {
                 "includeFiles": [
                     "dist/**",
-                    "dist/data/**"
+                    "dist/data/**",
+                    "prisma/migrations/**",
+                    "prisma/schema.prisma"
                 ]
             }
         }

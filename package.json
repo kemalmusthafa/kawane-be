@@ -21,6 +21,7 @@
     "db:migrate": "npx prisma migrate dev",
     "db:generate": "npx prisma generate",
     "db:studio": "npx prisma studio",
+    "vercel-build": "npm run build:linux && npx prisma migrate deploy",
     "migrate:production": "node scripts/run-production-migration.js",
     "midtrans:dev": "MIDTRANS_IS_PRODUCTION=false npm run dev",
     "midtrans:prod": "MIDTRANS_IS_PRODUCTION=true npm run dev"
