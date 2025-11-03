@@ -317,20 +317,6 @@ model LookbookPhoto {
   updatedAt   DateTime @updatedAt
 }
 
-model Banner {
-  id              String   @id @default(uuid())
-  text            String
-  isActive        Boolean  @default(true)
-  backgroundColor String? // e.g., "bg-primary", "bg-success"
-  textColor       String? // e.g., "text-primary-foreground", "text-white"
-  linkUrl         String? // Optional link URL
-  linkText        String? // Optional link text
-  dealId          String? // Optional reference to deal
-  priority        Int      @default(1) // Display priority (1-10)
-  duration        Int? // Duration in seconds for auto-scroll
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
 
 enum Role {
   CUSTOMER
