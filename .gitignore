@@ -14,7 +14,7 @@ lerna-debug.log*
 .env.production.local
 
 # Build outputs
-dist/
+# dist/ - Keep dist/ in git for Vercel deployment (Vercel uses pre-built files)
 build/
 out/
 *.tsbuildinfo
