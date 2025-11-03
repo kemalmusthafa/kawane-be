@@ -14,8 +14,6 @@
     "dev:prod": "NODE_ENV=production ts-node-dev src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "prisma generate",
-    "migrate:deploy": "prisma migrate deploy",
-    "vercel-build": "npm run build:linux && npm run migrate:deploy",
     "seed": "ts-node prisma/seed.ts",
     "seed:users": "ts-node prisma/user-seed.ts",
     "db:seed": "npm run seed",
@@ -23,6 +21,7 @@
     "db:migrate": "npx prisma migrate dev",
     "db:generate": "npx prisma generate",
     "db:studio": "npx prisma studio",
+    "migrate:production": "node scripts/run-production-migration.js",
     "midtrans:dev": "MIDTRANS_IS_PRODUCTION=false npm run dev",
     "midtrans:prod": "MIDTRANS_IS_PRODUCTION=true npm run dev"
   },

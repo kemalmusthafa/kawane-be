@@ -39,12 +39,16 @@ ALTER TABLE "Address" ADD COLUMN "isDefault" BOOLEAN NOT NULL DEFAULT false;
 4. Klik **Run** atau **Execute**
 5. Selesai! Migration sudah dijalankan
 
-### Opsi 2: Via Prisma Studio
-1. Pastikan `.env` sudah di-set dengan `DATABASE_URL` production
-2. Run: `npx prisma studio`
-3. Atau run langsung: `npx prisma migrate deploy`
+### Opsi 2: Via Script Node.js (Jika DATABASE_URL production tersedia)
+1. Pastikan `.env` sudah di-set dengan `DATABASE_URL` production dari Vercel
+2. Jalankan: `npm run migrate:production`
+3. Script akan otomatis check dan menambahkan kolom yang belum ada
 
-### Opsi 3: Via Vercel CLI
+### Opsi 3: Via Prisma Migrate Deploy
+1. Pastikan `.env` sudah di-set dengan `DATABASE_URL` production
+2. Jalankan: `npx prisma migrate deploy`
+
+### Opsi 4: Via Vercel CLI
 ```bash
 # Install Vercel CLI
 npm i -g vercel
