@@ -14,6 +14,8 @@
     "dev:prod": "NODE_ENV=production ts-node-dev src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "prisma generate",
+    "migrate:deploy": "prisma migrate deploy",
+    "vercel-build": "npm run build:linux && npm run migrate:deploy",
     "seed": "ts-node prisma/seed.ts",
     "seed:users": "ts-node prisma/user-seed.ts",
     "db:seed": "npm run seed",
