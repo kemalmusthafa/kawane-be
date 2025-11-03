@@ -3,9 +3,13 @@
 ## Error yang Terjadi
 Database production di Vercel tidak memiliki:
 1. Column `size` di table `OrderItem` 
+2. Column `isDefault` di table `Address`
+3. Column `isWhatsAppOrder`, `whatsappMessage`, `whatsappOrderId`, `whatsappPhoneNumber` di table `Order`
 
 Error muncul di:
 - `/api/best-sellers` - "The column `OrderItem.size` does not exist in the current database"
+- `/api/orders` (checkout) - "The column `isDefault` does not exist in the current database"
+- `/api/orders` (checkout) - "The column `isWhatsAppOrder` does not exist in the current database"
 
 ## Migration yang Perlu Dijalankan
 
@@ -23,6 +27,19 @@ File: `prisma/migrations/20251103200000_add_address_is_default/migration.sql`
 ALTER TABLE "Address" ADD COLUMN "isDefault" BOOLEAN NOT NULL DEFAULT false;
 ```
 
+### Migration 3: Order WhatsApp Fields
+File: `prisma/migrations/20251104000000_add_order_whatsapp_fields/migration.sql`
+```sql
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN "isWhatsAppOrder" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Order" ADD COLUMN "whatsappMessage" TEXT;
+ALTER TABLE "Order" ADD COLUMN "whatsappOrderId" TEXT;
+ALTER TABLE "Order" ADD COLUMN "whatsappPhoneNumber" TEXT;
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Order_whatsappOrderId_key" ON "Order"("whatsappOrderId");
+```
+
 ## Cara Menjalankan (Pilih Salah Satu)
 
 ### Opsi 1: Via Supabase Dashboard (Paling Mudah)
@@ -35,7 +52,16 @@ ALTER TABLE "Address" ADD COLUMN "isDefault" BOOLEAN NOT NULL DEFAULT false;
    
    -- Migration 2: Address.isDefault
    ALTER TABLE "Address" ADD COLUMN "isDefault" BOOLEAN NOT NULL DEFAULT false;
+   
+   -- Migration 3: Order WhatsApp fields
+   ALTER TABLE "Order" ADD COLUMN "isWhatsAppOrder" BOOLEAN NOT NULL DEFAULT false;
+   ALTER TABLE "Order" ADD COLUMN "whatsappMessage" TEXT;
+   ALTER TABLE "Order" ADD COLUMN "whatsappOrderId" TEXT;
+   ALTER TABLE "Order" ADD COLUMN "whatsappPhoneNumber" TEXT;
+   CREATE UNIQUE INDEX "Order_whatsappOrderId_key" ON "Order"("whatsappOrderId");
    ```
+   
+   **ATAU** gunakan file `RUN_MIGRATION_NOW.sql` yang sudah include semua migration dengan pengecekan `IF NOT EXISTS` (lebih aman)
 4. Klik **Run** atau **Execute**
 5. Selesai! Migration sudah dijalankan
 
@@ -70,10 +96,13 @@ npx prisma migrate deploy
 Setelah migration berhasil, pastikan:
 - Column `size` ada di table `OrderItem` di database
 - Column `isDefault` ada di table `Address` di database
+- Columns `isWhatsAppOrder`, `whatsappMessage`, `whatsappOrderId`, `whatsappPhoneNumber` ada di table `Order` di database
+- Unique index `Order_whatsappOrderId_key` sudah dibuat
 - API `/api/best-sellers` tidak error lagi
 - API `/api/orders` (checkout) tidak error lagi
 - Tidak ada error "OrderItem.size does not exist"
 - Tidak ada error "Address.isDefault does not exist"
+- Tidak ada error "isWhatsAppOrder does not exist"
 
 ## Catatan
 - Migration ini hanya menambahkan column, tidak menghapus data

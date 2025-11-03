@@ -39,6 +39,48 @@ async function runMigration() {
       console.log('   ✓ Address.isDefault column already exists');
     }
 
+    // Migration 3: Order WhatsApp fields
+    console.log('\n📱 Checking Order WhatsApp fields...');
+    const orderWhatsAppFields = ['isWhatsAppOrder', 'whatsappMessage', 'whatsappOrderId', 'whatsappPhoneNumber'];
+    
+    for (const field of orderWhatsAppFields) {
+      const fieldExists = await prisma.$queryRaw`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'Order' 
+        AND column_name = ${field}
+      `;
+
+      if (fieldExists.length === 0) {
+        console.log(`   → Adding Order.${field} column...`);
+        if (field === 'isWhatsAppOrder') {
+          await prisma.$executeRaw`ALTER TABLE "Order" ADD COLUMN "isWhatsAppOrder" BOOLEAN NOT NULL DEFAULT false;`;
+        } else {
+          await prisma.$executeRawUnsafe(`ALTER TABLE "Order" ADD COLUMN "${field}" TEXT;`);
+        }
+        console.log(`   ✅ Order.${field} column added successfully!`);
+      } else {
+        console.log(`   ✓ Order.${field} column already exists`);
+      }
+    }
+
+    // Create unique index for whatsappOrderId if not exists
+    console.log('\n🔑 Checking Order_whatsappOrderId_key index...');
+    const indexExists = await prisma.$queryRaw`
+      SELECT 1 
+      FROM pg_indexes 
+      WHERE tablename = 'Order' 
+      AND indexname = 'Order_whatsappOrderId_key'
+    `;
+
+    if (indexExists.length === 0) {
+      console.log('   → Creating unique index for whatsappOrderId...');
+      await prisma.$executeRaw`CREATE UNIQUE INDEX "Order_whatsappOrderId_key" ON "Order"("whatsappOrderId");`;
+      console.log('   ✅ Unique index created successfully!');
+    } else {
+      console.log('   ✓ Unique index already exists');
+    }
+
     console.log('\n✨ Migration completed successfully!');
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
