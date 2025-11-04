@@ -101,5 +101,18 @@ export const createReviewService = async (data: CreateReviewData) => {
     });
   }
 
+  // Calculate and update product average rating
+  const allReviews = await prisma.review.findMany({
+    where: { productId: data.productId },
+  });
+
+  const avgRating =
+    allReviews.length > 0
+      ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
+      : 0;
+
+  // Note: avgRating is calculated on-the-fly in get-product-detail service
+  // This ensures it's always accurate without needing to update product table
+
   return review;
 };

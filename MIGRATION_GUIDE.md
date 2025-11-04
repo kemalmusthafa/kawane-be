@@ -67,3 +67,4 @@ Jika migration gagal:
 3. Jangan gunakan `IF NOT EXISTS` atau syntax PostgreSQL khusus
 4. Reset migration jika perlu: `npx prisma migrate reset` (HATI-HATI: hapus semua data!)
 
+

@@ -15,6 +15,12 @@ export class ReviewRouter {
   }
 
   private initializeRoutes() {
+    // Get reviews for a product
+    this.router.get(
+      "/",
+      this.reviewController.getReviewsController
+    );
+
     // Create new review
     this.router.post(
       "/",

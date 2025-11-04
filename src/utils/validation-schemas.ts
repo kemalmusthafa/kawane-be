@@ -517,8 +517,9 @@ export const createReviewSchema = z.object({
 
   comment: z
     .string()
-    .min(10, "Comment must be at least 10 characters")
-    .max(1000, "Comment cannot exceed 1000 characters"),
+    .max(1000, "Comment cannot exceed 1000 characters")
+    .optional()
+    .default(""),
 });
 
 // ========================================

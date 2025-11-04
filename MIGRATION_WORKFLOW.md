@@ -90,3 +90,4 @@ Vercel akan **otomatis** menjalankan migration saat deploy karena:
 - Migration files **HARUS** di-commit ke git
 - `prisma/migrations/` **TIDAK** boleh di `.gitignore`
 
+

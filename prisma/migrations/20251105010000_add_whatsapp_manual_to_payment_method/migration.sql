@@ -7,3 +7,4 @@ ALTER TYPE "public"."PaymentMethod_new" RENAME TO "PaymentMethod";
 DROP TYPE "public"."PaymentMethod_old";
 COMMIT;
 
+
