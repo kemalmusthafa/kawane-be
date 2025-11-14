@@ -154,8 +154,8 @@ export class AnalyticsService {
 
     // ✅ OPTIMIZED: Use single transaction to avoid N+1 queries
     const result = await prisma.$transaction(async (tx) => {
-      const topProducts = await tx.orderItem.groupBy({
-        by: ["productId"],
+      // Get all order items for the period
+      const orderItems = await tx.orderItem.findMany({
         where: {
           order: {
             createdAt: { gte: startDate },
@@ -164,20 +164,42 @@ export class AnalyticsService {
             },
           },
         },
-        _sum: {
+        select: {
+          productId: true,
           quantity: true,
           price: true,
         },
-        orderBy: {
-          _sum: {
-            quantity: "desc",
-          },
-        },
-        take: 5,
       });
 
+      // Group by productId and calculate totals
+      const productMap = new Map<
+        string,
+        { quantity: number; revenue: number }
+      >();
+
+      orderItems.forEach((item) => {
+        const existing = productMap.get(item.productId) || {
+          quantity: 0,
+          revenue: 0,
+        };
+        productMap.set(item.productId, {
+          quantity: existing.quantity + item.quantity,
+          revenue: existing.revenue + item.price * item.quantity,
+        });
+      });
+
+      // Convert to array and sort by quantity
+      const topProductsArray = Array.from(productMap.entries())
+        .map(([productId, data]) => ({
+          productId,
+          quantity: data.quantity,
+          revenue: data.revenue,
+        }))
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 5);
+
       // ✅ OPTIMIZED: Single query for all product details
-      const productIds = topProducts.map((item) => item.productId);
+      const productIds = topProductsArray.map((item) => item.productId);
       const products =
         productIds.length > 0
           ? await tx.product.findMany({
@@ -187,12 +209,12 @@ export class AnalyticsService {
           : [];
 
       // Combine data efficiently
-      const productsWithDetails = topProducts.map((item) => {
+      const productsWithDetails = topProductsArray.map((item) => {
         const product = products.find((p) => p.id === item.productId);
         return {
           name: product?.name || "Unknown Product",
-          sales: item._sum.quantity || 0,
-          revenue: (item._sum.price || 0) * (item._sum.quantity || 0),
+          sales: item.quantity,
+          revenue: item.revenue,
         };
       });
 
@@ -204,10 +226,17 @@ export class AnalyticsService {
 
   private async getRecentOrders() {
     const recentOrders = await prisma.order.findMany({
-      where: { status: { in: ["PENDING", "SHIPPED", "COMPLETED"] } },
+      where: {
+        payment: {
+          status: "SUCCEEDED",
+        },
+      },
       include: {
         user: {
-          select: { name: true },
+          select: { name: true, email: true },
+        },
+        payment: {
+          select: { status: true },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -216,7 +245,7 @@ export class AnalyticsService {
 
     return recentOrders.map((order) => ({
       id: order.id,
-      customer: order.user.name,
+      customer: order.user?.name || "Unknown Customer",
       amount: order.totalAmount,
       status: order.status,
       date: order.createdAt.toISOString().split("T")[0],
