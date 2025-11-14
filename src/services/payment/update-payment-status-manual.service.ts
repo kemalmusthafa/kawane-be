@@ -130,7 +130,9 @@ export const updatePaymentStatusManualService = async (
           data: {
             productId: item.productId,
             change: item.quantity,
-            note: `Order ${data.orderId}: Stock restored due to payment ${data.status.toLowerCase()}`,
+            note: `Order ${
+              data.orderId
+            }: Stock restored due to payment ${data.status.toLowerCase()}`,
           },
         });
       }
